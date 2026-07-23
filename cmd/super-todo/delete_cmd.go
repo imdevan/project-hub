@@ -7,10 +7,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
-	"github.com/aliases/internal/alias"
-	"github.com/aliases/internal/config"
-	"github.com/aliases/internal/flags"
-	"github.com/aliases/internal/ui"
+	"github.com/super-todo/internal/alias"
+	"github.com/super-todo/internal/config"
+	"github.com/super-todo/internal/flags"
+	"github.com/super-todo/internal/ui"
 )
 
 func newDeleteCmd() *cobra.Command {

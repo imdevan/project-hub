@@ -1,4 +1,4 @@
-module github.com/aliases
+module github.com/super-todo
 
 go 1.26
 

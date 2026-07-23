@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	shelladapter "github.com/aliases/internal/adapters/shell"
+	shelladapter "github.com/super-todo/internal/adapters/shell"
 )
 
 // Config describes the resolved configuration.
@@ -40,8 +40,16 @@ type Config struct {
 	DefaultAliasPartLength int    `toml:"default_alias_part_length"`
 	HomeIcon               string `toml:"home_icon"`
 	DefaultSortBy          string `toml:"default_sort_by"`
-	FunctionAlias          string `toml:"function_alias"`
-	InteractiveAlias       string `toml:"interactive_alias"`
+	FunctionAlias          string            `toml:"function_alias"`
+	InteractiveAlias       string            `toml:"interactive_alias"`
+
+	// Todo settings
+	IgnoreFolders []string `toml:"ignore_folders"`
+	FtsFiles      []string `toml:"fts_files"`
+	FtsFeatures   []string `toml:"fts_features"`
+	FtsTasks      []string `toml:"fts_tasks"`
+	FtsSubtasks   []string `toml:"fts_subtasks"`
+	TodoTokens    []string `toml:"todo_tokens"`
 }
 
 // DefaultConfig returns the default configuration values.
@@ -81,6 +89,14 @@ func DefaultConfig() Config {
 		DefaultSortBy:        "newest",
 		FunctionAlias:        "true",
 		InteractiveAlias:     "al",
+
+		// Todo defaults
+		IgnoreFolders: []string{"node_modules", "dist", "bin", ".git", ".vscode", "vendor", "build", "target"},
+		FtsFiles:      []string{"plan/tasks.md", "plan/simple.md", "todo.md", "tasks.md", "PLAN.md"},
+		FtsFeatures:   []string{"## Feature ", "### Feature "},
+		FtsTasks:      []string{"- [ ] ", "* [ ] "},
+		FtsSubtasks:   []string{"- [ ] ", "* [ ] "},
+		TodoTokens:    []string{"TODO", "FIXME"},
 	}
 }
 

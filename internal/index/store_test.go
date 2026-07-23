@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aliases/internal/domain"
+	"github.com/super-todo/internal/domain"
 )
 
 func tempDB(t *testing.T) *Store {

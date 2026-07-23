@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/aliases/internal/flags"
+	"github.com/super-todo/internal/flags"
 )
 
 func newCmd() *cobra.Command {

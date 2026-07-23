@@ -8,8 +8,8 @@ import (
 
 	"github.com/pelletier/go-toml/v2"
 
-	"github.com/aliases/internal/domain"
-	"github.com/aliases/internal/utils"
+	"github.com/super-todo/internal/domain"
+	"github.com/super-todo/internal/utils"
 )
 
 // ManagerImpl loads and saves configuration files.
@@ -111,6 +111,12 @@ type partialConfig struct {
 	AutoAliasLowercase   *bool       `toml:"auto_alias_lowercase"`
 	HomeIcon             *string     `toml:"home_icon"`
 	DefaultSortBy        *string     `toml:"default_sort_by"`
+	IgnoreFolders        interface{} `toml:"ignore_folders"`
+	FtsFiles             interface{} `toml:"fts_files"`
+	FtsFeatures          interface{} `toml:"fts_features"`
+	FtsTasks             interface{} `toml:"fts_tasks"`
+	FtsSubtasks          interface{} `toml:"fts_subtasks"`
+	TodoTokens           interface{} `toml:"todo_tokens"`
 }
 
 func readConfig(path string) (*partialConfig, error) {
@@ -220,6 +226,45 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	if partial.DefaultSortBy != nil {
 		config.DefaultSortBy = *partial.DefaultSortBy
 	}
+	if folders := parseStringSlice(partial.IgnoreFolders); folders != nil {
+		config.IgnoreFolders = folders
+	}
+	if files := parseStringSlice(partial.FtsFiles); files != nil {
+		config.FtsFiles = files
+	}
+	if features := parseStringSlice(partial.FtsFeatures); features != nil {
+		config.FtsFeatures = features
+	}
+	if tasks := parseStringSlice(partial.FtsTasks); tasks != nil {
+		config.FtsTasks = tasks
+	}
+	if subtasks := parseStringSlice(partial.FtsSubtasks); subtasks != nil {
+		config.FtsSubtasks = subtasks
+	}
+	if tokens := parseStringSlice(partial.TodoTokens); tokens != nil {
+		config.TodoTokens = tokens
+	}
+}
+
+func parseStringSlice(field interface{}) []string {
+	if field == nil {
+		return nil
+	}
+	switch v := field.(type) {
+	case string:
+		return []string{v}
+	case []interface{}:
+		var result []string
+		for _, elem := range v {
+			if str, ok := elem.(string); ok {
+				result = append(result, str)
+			}
+		}
+		return result
+	case []string:
+		return v
+	}
+	return nil
 }
 
 func expandPath(value string) string {

@@ -6,11 +6,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/aliases/internal/alias"
-	"github.com/aliases/internal/config"
-	"github.com/aliases/internal/domain"
-	"github.com/aliases/internal/flags"
-	"github.com/aliases/internal/ui"
+	"github.com/super-todo/internal/alias"
+	"github.com/super-todo/internal/config"
+	"github.com/super-todo/internal/domain"
+	"github.com/super-todo/internal/flags"
+	"github.com/super-todo/internal/ui"
 )
 
 type editOptions struct {

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aliases/internal/alias"
-	"github.com/aliases/internal/domain"
+	"github.com/super-todo/internal/alias"
+	"github.com/super-todo/internal/domain"
 )
 
 // Indexer scans alias source files and populates the SQLite index.

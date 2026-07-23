@@ -7,8 +7,8 @@ import (
 
 	"github.com/pelletier/go-toml/v2"
 
-	"github.com/aliases/internal/config"
-	"github.com/aliases/internal/domain"
+	"github.com/super-todo/internal/config"
+	"github.com/super-todo/internal/domain"
 )
 
 // TestEnv holds test environment setup.

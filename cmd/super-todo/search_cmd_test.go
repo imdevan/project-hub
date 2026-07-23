@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aliases/internal/domain"
-	"github.com/aliases/internal/index"
+	"github.com/super-todo/internal/domain"
+	"github.com/super-todo/internal/index"
 )
 
 func TestSearchCmd_Execution(t *testing.T) {

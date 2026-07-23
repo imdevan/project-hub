@@ -6,9 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/aliases/internal/config"
-	"github.com/aliases/internal/flags"
-	"github.com/aliases/internal/index"
+	"github.com/super-todo/internal/config"
+	"github.com/super-todo/internal/flags"
+	"github.com/super-todo/internal/index"
 )
 
 func newIndexCmd() *cobra.Command {

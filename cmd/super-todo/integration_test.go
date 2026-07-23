@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/aliases/internal/alias"
-	"github.com/aliases/internal/domain"
-	"github.com/aliases/internal/testutil"
+	"github.com/super-todo/internal/alias"
+	"github.com/super-todo/internal/domain"
+	"github.com/super-todo/internal/testutil"
 )
 
 func TestIntegration_AliasCurrentDirectory(t *testing.T) {

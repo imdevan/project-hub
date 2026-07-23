@@ -1,6 +1,6 @@
 # Aliases
 
-An alias manager for your favorite shell
+A super, todo manager
 
 ## Features
 

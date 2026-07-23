@@ -47,3 +47,12 @@ flags = "12"
 muted = "08"
 border = "08"
 error = "01"
+
+# Todo & Project Settings
+ignore_folders = ["node_modules", "dist", "bin", ".git", ".vscode", "vendor", "build", "target"]
+fts_files = ["plan/tasks.md", "plan/simple.md", "todo.md", "tasks.md", "PLAN.md"]
+fts_features = ["## Feature ", "### Feature "]
+fts_tasks = ["- [ ] ", "* [ ] "]
+fts_subtasks = ["- [ ] ", "* [ ] "]
+todo_tokens = ["TODO", "FIXME"]
+

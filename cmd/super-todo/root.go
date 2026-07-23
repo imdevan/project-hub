@@ -11,16 +11,16 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
-	"github.com/aliases/internal/adapters/editor"
-	"github.com/aliases/internal/adapters/icon"
-	"github.com/aliases/internal/adapters/tty"
-	"github.com/aliases/internal/alias"
-	"github.com/aliases/internal/config"
-	"github.com/aliases/internal/domain"
-	"github.com/aliases/internal/flags"
-	"github.com/aliases/internal/index"
-	pkg "github.com/aliases/internal/package"
-	"github.com/aliases/internal/ui"
+	"github.com/super-todo/internal/adapters/editor"
+	"github.com/super-todo/internal/adapters/icon"
+	"github.com/super-todo/internal/adapters/tty"
+	"github.com/super-todo/internal/alias"
+	"github.com/super-todo/internal/config"
+	"github.com/super-todo/internal/domain"
+	"github.com/super-todo/internal/flags"
+	"github.com/super-todo/internal/index"
+	pkg "github.com/super-todo/internal/package"
+	"github.com/super-todo/internal/ui"
 )
 
 // Metadata loaded from package.toml at build time

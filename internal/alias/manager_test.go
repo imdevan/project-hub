@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/aliases/internal/domain"
+	"github.com/super-todo/internal/domain"
 )
 
 func TestGenerateAlias(t *testing.T) {

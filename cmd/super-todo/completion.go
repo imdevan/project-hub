@@ -11,7 +11,7 @@ import (
 newCompletionCmd creates the completion command for generating shell completion scripts.
 
 The completion command generates shell completion scripts for various shells.
-This enables tab-completion for aliases commands and aliases.
+This enables tab-completion for super-todo commands and super-todo.
 
 Supported shells:
   - bash
@@ -22,16 +22,16 @@ Supported shells:
 Examples:
 
 	# Generate bash completion
-	aliases completion bash > /etc/bash_completion.d/aliases
+	super-todo completion bash > /etc/bash_completion.d/super-todo
 
 	# Generate zsh completion
-	aliases completion zsh > ~/.zsh/completion/_aliases
+	super-todo completion zsh > ~/.zsh/completion/_super-todo
 
 	# Generate fish completion
-	aliases completion fish > ~/.config/fish/completions/aliases.fish
+	super-todo completion fish > ~/.config/fish/completions/super-todo.fish
 
 	# Generate powershell completion
-	aliases completion powershell > aliases.ps1
+	super-todo completion powershell > super-todo.ps1
 */
 func newCompletionCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -68,9 +68,9 @@ func runCompletion(cmd *cobra.Command, args []string) error {
 func completionHelp() string {
 	return strings.Join([]string{
 		"Examples:",
-		"  aliases completion bash > /etc/bash_completion.d/aliases",
-		"  aliases completion zsh > ~/.zsh/completion/_aliases",
-		"  aliases completion fish > ~/.config/fish/completions/aliases.fish",
-		"  aliases completion powershell > aliases.ps1",
+		"  super-todo completion bash > /etc/bash_completion.d/super-todo",
+		"  super-todo completion zsh > ~/.zsh/completion/_super-todo",
+		"  super-todo completion fish > ~/.config/fish/completions/super-todo.fish",
+		"  super-todo completion powershell > super-todo.ps1",
 	}, "\n")
 }

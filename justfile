@@ -2,7 +2,7 @@
 # ================================================================================
 set shell := ["zsh", "-cu"]
 
-PACKAGE := "aliases"
+PACKAGE := "super-todo"
 PACKAGE_BIN := "./bin/" + PACKAGE
 PACKAGE_CMD := "./cmd/" + PACKAGE
 

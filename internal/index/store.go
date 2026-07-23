@@ -10,8 +10,8 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/aliases/internal/domain"
-	"github.com/aliases/internal/utils"
+	"github.com/super-todo/internal/domain"
+	"github.com/super-todo/internal/utils"
 )
 
 // Store provides SQLite-backed alias persistence and search.
