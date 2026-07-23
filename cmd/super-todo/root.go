@@ -20,6 +20,7 @@ import (
 	"github.com/super-todo/internal/flags"
 	"github.com/super-todo/internal/index"
 	pkg "github.com/super-todo/internal/package"
+	"github.com/super-todo/internal/todo"
 	"github.com/super-todo/internal/ui"
 )
 
@@ -48,9 +49,9 @@ func Execute() error {
 func newRootCmd() *cobra.Command {
 	opts := &rootOptions{}
 	cmd := &cobra.Command{
-		Use:   name + " [name]",
+		Use:   name,
 		Short: short,
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.showVersion {
 				ver := resolvedVersion()
@@ -65,40 +66,14 @@ func newRootCmd() *cobra.Command {
 
 			cfg := config.Load(cwd, opts.configPath)
 
-			// Interactive mode: if explicit -i flag, or if no args/commands are provided
-			isNoArgsOrCommands := len(args) == 0 && !opts.add && !opts.yes
-
-			if opts.interactive || isNoArgsOrCommands {
-				return runInteractive(cmd, opts, cfg)
-			}
-
-			// Interactive add form
-			if opts.add {
-				return runAddForm(cmd, opts, cfg, cwd)
-			}
-
-			// Add alias mode
-			return runAddAlias(cmd, args, opts, cfg, cwd)
+			return todo.RunProjectListing(cfg, cwd)
 		},
 	}
 
 	flags.SetPersistent(cmd, &opts.configPath, "config", "c", "config file path")
-
-	flags.Set(cmd, &opts.interactive, "interactive", "i", "interactive alias browser")
-	flags.Set(cmd, &opts.add, "add", "a", "interactive add alias form")
-	flags.Set(cmd, &opts.yes, "yes", "y", "skip confirmation, and interactive prompts")
-
 	flags.Set(cmd, &opts.showVersion, "version", "v", "print version information")
 
-	cmd.AddCommand(newAddCmd())
-	cmd.AddCommand(newDeleteCmd())
-	cmd.AddCommand(newEditCmd())
-	cmd.AddCommand(newListCmd())
-	cmd.AddCommand(newImportCmd())
 	cmd.AddCommand(newConfigCmd())
-	cmd.AddCommand(newSearchCmd())
-	cmd.AddCommand(newIndexCmd())
-	cmd.AddCommand(newCompletionCmd())
 
 	return cmd
 }
