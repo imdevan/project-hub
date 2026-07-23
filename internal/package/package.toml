@@ -1,14 +1,14 @@
 # Package information - source of truth for project metadata
 # Run just sync after modifying this file
 
-name = "aliases"
-package_name = "aliases"
-module = "github.com/aliases"
-description = "An alias manager for your favorite shell"
-short = "alias manager"
-version = "1.4.0"
-homepage = "https://devan.gg/aliases"
-repository = "https://github.com/imdevan/aliases/"
+name = "super-todo"
+package_name = "super-todo"
+module = "github.com/super-todo"
+description = "A super, todo manager"
+short = "Super todo!"
+version = "1.0.0"
+homepage = "https://devan.gg/super-todo"
+repository = "https://github.com/imdevan/super-todo/"
 author = "hi@devan.gg"
 docs_site = "https://devan.gg"
-docs_base = "/aliases"
+docs_base = "/super-todo"
