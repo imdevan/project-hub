@@ -158,3 +158,59 @@ func TestScanProjectsDiscovery(t *testing.T) {
 	}
 }
 
+func TestParseFTSDetailedAndFindTodos(t *testing.T) {
+	cfg := domain.DefaultConfig()
+
+	tempDir := t.TempDir()
+
+	// Test FTS detailed parsing
+	ftsContent := `
+# Title
+
+## Feature A
+  - [x] Task 1
+  - [ ] Task 2
+
+### Feature B
+  - [x] Task 3
+`
+	ftsPath := filepath.Join(tempDir, "tasks.md")
+	_ = os.WriteFile(ftsPath, []byte(ftsContent), 0644)
+
+	completed, total, features, err := ParseFTSDetailed(ftsPath, cfg)
+	if err != nil {
+		t.Fatalf("ParseFTSDetailed failed: %v", err)
+	}
+	if total != 3 || completed != 2 {
+		t.Errorf("Expected 3 tasks (2 completed), got %d (%d completed)", total, completed)
+	}
+	if len(features) != 2 {
+		t.Errorf("Expected 2 features, got %d", len(features))
+	}
+	if features[0].Name != "A" || len(features[0].Tasks) != 2 {
+		t.Errorf("Expected Feature A (name 'A') with 2 tasks, got name=%q, tasks=%d", features[0].Name, len(features[0].Tasks))
+	}
+	if features[1].Name != "B" || len(features[1].Tasks) != 1 {
+		t.Errorf("Expected Feature B (name 'B') with 1 task, got name=%q, tasks=%d", features[1].Name, len(features[1].Tasks))
+	}
+
+	// Test Todo scanning
+	srcContent := `
+// TODO: task 1
+// FIXME: task 2
+`
+	srcPath := filepath.Join(tempDir, "main.go")
+	_ = os.WriteFile(srcPath, []byte(srcContent), 0644)
+
+	todos, err := FindTodosInFile(srcPath, cfg)
+	if err != nil {
+		t.Fatalf("FindTodosInFile failed: %v", err)
+	}
+	if len(todos) != 2 {
+		t.Errorf("Expected 2 todos, got %d", len(todos))
+	}
+	if todos[0].Text != "// TODO: task 1" || todos[1].Text != "// FIXME: task 2" {
+		t.Errorf("Unexpected todos text: %+v", todos)
+	}
+}
+

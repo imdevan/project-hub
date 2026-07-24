@@ -196,16 +196,26 @@ func (s *Scanner) ScanProject(dir string) (Project, error) {
 		}
 
 		if isFTS {
-			completed, total, err := ParseFTSFile(path, s.config)
+			completed, total, features, err := ParseFTSDetailed(path, s.config)
 			if err == nil {
 				proj.CompletedTasks += completed
 				proj.TotalTasks += total
+				proj.FtsFiles = append(proj.FtsFiles, FtsFileDetail{
+					Path:           relPath,
+					CompletedTasks: completed,
+					TotalTasks:     total,
+					Features:       features,
+				})
 			}
 		} else {
 			// Scan code file for TODOs
-			todos, err := CountTodosInFile(path, s.config)
+			todos, err := FindTodosInFile(path, s.config)
 			if err == nil {
-				proj.TodoCount += todos
+				proj.TodoCount += len(todos)
+				for i := range todos {
+					todos[i].File = relPath
+				}
+				proj.Todos = append(proj.Todos, todos...)
 			}
 		}
 

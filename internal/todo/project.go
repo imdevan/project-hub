@@ -12,6 +12,19 @@ type Feature struct {
 	Tasks []TaskItem
 }
 
+type TodoComment struct {
+	File string
+	Line int
+	Text string
+}
+
+type FtsFileDetail struct {
+	Path           string
+	CompletedTasks int
+	TotalTasks     int
+	Features       []Feature
+}
+
 // Project represents a scanned local development project.
 type Project struct {
 	Name           string
@@ -20,6 +33,8 @@ type Project struct {
 	TotalTasks     int
 	TodoCount      int
 	Scanned        bool
+	Todos          []TodoComment
+	FtsFiles       []FtsFileDetail
 }
 
 // Progress returns the completion percentage of tasks, or 0 if no tasks exist.

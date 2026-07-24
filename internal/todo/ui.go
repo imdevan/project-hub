@@ -71,6 +71,7 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 		spinner:       s,
 		indexing:      true,
 		indexingIndex: 0,
+		activeView:    "list",
 	}
 
 	model.list.AdditionalShortHelpKeys = model.getShortHelpKeys
@@ -266,21 +267,24 @@ func delayClearIndexingCmd() tea.Cmd {
 }
 
 type projectListModel struct {
-	list        list.Model
-	theme       ui.Theme
-	responsive  *ui.ResponsiveManager
-	config      domain.Config
-	cwd         string
-	message     string
-	selectedCmd string
-	projects    []Project
-	scanner     *Scanner
-	spinner     spinner.Model
-	indexing    bool
-	indexingIndex int
+	list             list.Model
+	theme            ui.Theme
+	responsive       *ui.ResponsiveManager
+	config           domain.Config
+	cwd              string
+	message          string
+	selectedCmd      string
+	projects         []Project
+	scanner          *Scanner
+	spinner          spinner.Model
+	indexing         bool
+	indexingIndex    int
 	indexingComplete bool
-	screenW     int
-	screenH     int
+	screenW          int
+	screenH          int
+
+	activeView       string // "list" or "project"
+	projectPageModel *projectPageModel
 }
 
 func (m projectListModel) Init() tea.Cmd {
@@ -304,6 +308,10 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			height -= 2
 		}
 		m.list.SetSize(width, height)
+		if m.projectPageModel != nil {
+			m.projectPageModel.width = msg.Width
+			m.projectPageModel.height = msg.Height
+		}
 		return m, nil
 
 	case scanProjectResultMsg:
@@ -340,6 +348,18 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
+		if m.activeView == "project" {
+			newPm, cmd := m.projectPageModel.Update(msg)
+			if pm, ok := newPm.(projectPageModel); ok {
+				m.projectPageModel = &pm
+				if pm.selectedCmd != "" {
+					m.selectedCmd = pm.selectedCmd
+				}
+				return m, cmd
+			}
+			return newPm, cmd
+		}
+
 		if m.list.FilterState() == list.Filtering {
 			switch msg.String() {
 			case "q", "esc", "ctrl+c":
@@ -354,7 +374,20 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "esc", "ctrl+c":
 			return m, tea.Quit
 
-		case "enter", "o":
+		case "enter":
+			if item, ok := m.list.SelectedItem().(projectItem); ok {
+				m.activeView = "project"
+				pm := newProjectPageModel(&item.Project, m.config, m.theme, func() (tea.Model, tea.Cmd) {
+					m.activeView = "list"
+					return m, nil
+				}, m)
+				pm.width = m.list.Width()
+				pm.height = m.list.Height()
+				m.projectPageModel = &pm
+				return m, nil
+			}
+
+		case "o":
 			if item, ok := m.list.SelectedItem().(projectItem); ok {
 				// Find FTS file or fallback to project directory
 				relPath := "."
@@ -419,20 +452,25 @@ func (m projectListModel) View() string {
 	if m.message != "" {
 		body = lipgloss.NewStyle().Foreground(m.theme.Error).Render(m.message) + "\n\n"
 	}
-	body += m.list.View()
 
-	if m.indexing {
-		currentProjName := m.projects[m.indexingIndex].Name
-		statusStr := fmt.Sprintf("\n%s indexing tasks: %s (%d/%d)...",
-			m.spinner.View(),
-			currentProjName,
-			m.indexingIndex+1,
-			len(m.projects))
-		body += lipgloss.NewStyle().Foreground(m.theme.Muted).Render(statusStr)
-	} else if m.indexingComplete {
-		statusStr := fmt.Sprintf("\n%s indexing tasks complete",
-			lipgloss.NewStyle().Foreground(m.theme.Success).Render("✔"))
-		body += lipgloss.NewStyle().Foreground(m.theme.Muted).Render(statusStr)
+	if m.activeView == "project" && m.projectPageModel != nil {
+		body += m.projectPageModel.View()
+	} else {
+		body += m.list.View()
+
+		if m.indexing {
+			currentProjName := m.projects[m.indexingIndex].Name
+			statusStr := fmt.Sprintf("\n%s indexing tasks: %s (%d/%d)...",
+				m.spinner.View(),
+				currentProjName,
+				m.indexingIndex+1,
+				len(m.projects))
+			body += lipgloss.NewStyle().Foreground(m.theme.Muted).Render(statusStr)
+		} else if m.indexingComplete {
+			statusStr := fmt.Sprintf("\n%s indexing tasks complete",
+				lipgloss.NewStyle().Foreground(m.theme.Success).Render("✔"))
+			body += lipgloss.NewStyle().Foreground(m.theme.Muted).Render(statusStr)
+		}
 	}
 
 	return m.responsive.FullWidthFrameStyle(m.theme).Render(body)
