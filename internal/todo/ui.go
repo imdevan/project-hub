@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -61,8 +62,13 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 	opts := tty.GetProgramOptions(tea.WithoutSignalHandler())
 
 	p := tea.NewProgram(model, opts...)
-	if _, err := p.Run(); err != nil {
+	resModel, err := p.Run()
+	if err != nil {
 		return fmt.Errorf("failed to run interactive projects list: %w", err)
+	}
+
+	if fm, ok := resModel.(projectListModel); ok && fm.selectedCmd != "" {
+		fmt.Println(fm.selectedCmd)
 	}
 
 	return nil
@@ -225,6 +231,7 @@ type projectListModel struct {
 	config     domain.Config
 	cwd        string
 	message    string
+	selectedCmd string
 }
 
 func (m projectListModel) Init() tea.Cmd {
@@ -257,13 +264,27 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter", "o":
 			if item, ok := m.list.SelectedItem().(projectItem); ok {
 				// Find FTS file or fallback to project directory
+				relPath := "."
 				targetPath := item.Project.Path
 				for _, ftsFile := range m.config.FtsFiles {
 					testPath := filepath.Join(item.Project.Path, ftsFile)
 					if _, err := os.Stat(testPath); err == nil {
+						relPath = ftsFile
 						targetPath = testPath
 						break
 					}
+				}
+
+				if m.config.ReturnWithCd {
+					editorName := m.config.Editor
+					if editorName == "" {
+						editorName = "nvim"
+					}
+
+					escapedProjPath := quoteShellArg(item.Project.Path)
+					escapedRelPath := quoteShellArg(relPath)
+					m.selectedCmd = fmt.Sprintf("cd %s && %s %s", escapedProjPath, editorName, escapedRelPath)
+					return m, tea.Quit
 				}
 
 				editorAdapter := editor.New(m.config.Editor)
@@ -309,4 +330,8 @@ func (m projectListModel) allHelpKeys() []key.Binding {
 
 func (m projectListModel) getShortHelpKeys() []key.Binding {
 	return m.allHelpKeys()
+}
+
+func quoteShellArg(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }

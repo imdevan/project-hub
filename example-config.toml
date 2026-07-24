@@ -50,6 +50,7 @@ error = "01"
 
 # Todo & Project Settings
 ignore_folders = ["node_modules", "dist", "bin", ".git", ".vscode", "vendor", "build", "target"]
+return_with_cd = false
 fts_files = ["plan/tasks.md", "plan/simple.md", "todo.md", "tasks.md", "PLAN.md"]
 fts_features = ["## Feature ", "### Feature "]
 fts_tasks = ["- [ ] ", "* [ ] "]

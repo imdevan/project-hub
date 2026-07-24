@@ -13,6 +13,7 @@
 # shell = {{printf "%q" .Shell}}  # Options: bash, zsh, fish, nu
 # index_folders = []  # Glob patterns to scan for alias files (e.g. ["~/dotfiles/*.zsh"])
 # ignore_folders = [{{range $index, $element := .IgnoreFolders}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
+# return_with_cd = {{.ReturnWithCd}}  # When true: exit TUI on open and return directory navigation command to parent shell
 # cache_interval = {{.CacheInterval}}
 # script_icons = {}
 
