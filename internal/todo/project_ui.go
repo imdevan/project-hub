@@ -14,6 +14,7 @@ import (
 	"github.com/super-todo/internal/adapters/editor"
 	"github.com/super-todo/internal/domain"
 	"github.com/super-todo/internal/ui"
+	"github.com/super-todo/internal/utils"
 )
 
 type projectPageModel struct {
@@ -251,8 +252,8 @@ func (m projectPageModel) View() string {
 
 	// 4. Render active tab items
 	availableHeight := m.height - 10
-	if availableHeight < 5 {
-		availableHeight = 5
+	if availableHeight < 2 {
+		availableHeight = 2
 	}
 
 	type renderedBlock struct {
@@ -265,19 +266,21 @@ func (m projectPageModel) View() string {
 	if m.activeTab == 0 {
 		for i, todo := range m.project.Todos {
 			block := m.renderTodoBlock(todo, i == m.todoSelected)
+			blockLines := strings.Split(block, "\n")
 			blocks = append(blocks, renderedBlock{
 				index: i,
 				block: block,
-				lines: 2,
+				lines: len(blockLines),
 			})
 		}
 	} else {
 		for i, fts := range m.project.FtsFiles {
 			block := m.renderTaskBlock(fts, i == m.taskSelected)
+			blockLines := strings.Split(block, "\n")
 			blocks = append(blocks, renderedBlock{
 				index: i,
 				block: block,
-				lines: 3,
+				lines: len(blockLines),
 			})
 		}
 	}
@@ -389,10 +392,14 @@ func (m projectPageModel) View() string {
 }
 
 func (m projectPageModel) renderTodoBlock(todo TodoComment, isSelected bool) string {
-	var lines []string
 	indicator := "  "
 	if isSelected {
 		indicator = lipgloss.NewStyle().Foreground(m.theme.Primary).Render("│ ")
+	}
+
+	contentWidth := m.width - 4
+	if contentWidth < 10 {
+		contentWidth = 10
 	}
 
 	titleStyle := lipgloss.NewStyle().Bold(true)
@@ -404,17 +411,29 @@ func (m projectPageModel) renderTodoBlock(todo TodoComment, isSelected bool) str
 
 	locationStyle := lipgloss.NewStyle().Foreground(m.theme.Muted)
 
-	lines = append(lines, fmt.Sprintf("%s%s", indicator, titleStyle.Render(todo.Text)))
-	lines = append(lines, fmt.Sprintf("%s%s", indicator, locationStyle.Render(todo.File)))
+	wrappedTitle := utils.WrapText(todo.Text, contentWidth)
+	wrappedLocation := utils.WrapText(todo.File, contentWidth)
+
+	var lines []string
+	for _, line := range wrappedTitle {
+		lines = append(lines, indicator+titleStyle.Render(line))
+	}
+	for _, line := range wrappedLocation {
+		lines = append(lines, indicator+locationStyle.Render(line))
+	}
 
 	return strings.Join(lines, "\n")
 }
 
 func (m projectPageModel) renderTaskBlock(fts FtsFileDetail, isSelected bool) string {
-	var lines []string
 	indicator := "  "
 	if isSelected {
 		indicator = lipgloss.NewStyle().Foreground(m.theme.Primary).Render("│ ")
+	}
+
+	contentWidth := m.width - 4
+	if contentWidth < 10 {
+		contentWidth = 10
 	}
 
 	titleStyle := lipgloss.NewStyle().Bold(true)
@@ -424,11 +443,11 @@ func (m projectPageModel) renderTaskBlock(fts FtsFileDetail, isSelected bool) st
 		titleStyle = titleStyle.Foreground(m.theme.ColorName)
 	}
 
-	lines = append(lines, fmt.Sprintf("%s%s", indicator, titleStyle.Render(fts.Path)))
+	wrappedPath := utils.WrapText(fts.Path, contentWidth)
 
-	barW := m.width - 16
-	if barW < 20 {
-		barW = 20
+	barW := contentWidth - 12
+	if barW < 10 {
+		barW = 10
 	}
 	if barW > 60 {
 		barW = 60
@@ -449,10 +468,15 @@ func (m projectPageModel) renderTaskBlock(fts FtsFileDetail, isSelected bool) st
 	fFilledPart := fFgStyle.Render(strings.Repeat("█", fFilled))
 	fEmptyPart := fBgStyle.Render(strings.Repeat("░", barW-fFilled))
 	fBarStr := fFilledPart + fEmptyPart
-	lines = append(lines, fmt.Sprintf("%s  %s", indicator, fBarStr))
 
 	statsStr := lipgloss.NewStyle().Foreground(m.theme.ColorTasks).Render(fmt.Sprintf("(%d/%d) tasks complete", fts.CompletedTasks, fts.TotalTasks))
-	lines = append(lines, fmt.Sprintf("%s  %s", indicator, statsStr))
+
+	var lines []string
+	for _, line := range wrappedPath {
+		lines = append(lines, indicator+titleStyle.Render(line))
+	}
+	lines = append(lines, indicator+"  "+fBarStr)
+	lines = append(lines, indicator+"  "+statsStr)
 
 	return strings.Join(lines, "\n")
 }
