@@ -128,6 +128,7 @@ type partialConfig struct {
 	FtsTasks             interface{} `toml:"fts_tasks"`
 	FtsSubtasks          interface{} `toml:"fts_subtasks"`
 	TodoTokens           interface{} `toml:"todo_tokens"`
+	SyncInterval         *int        `toml:"sync_interval"`
 }
 
 func readConfig(path string) (*partialConfig, error) {
@@ -287,6 +288,9 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if tokens := parseStringSlice(partial.TodoTokens); tokens != nil {
 		config.TodoTokens = tokens
+	}
+	if partial.SyncInterval != nil {
+		config.SyncInterval = *partial.SyncInterval
 	}
 }
 

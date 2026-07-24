@@ -66,4 +66,5 @@ fts_features = ["## Feature ", "### Feature "]
 fts_tasks = ["- [ ] ", "* [ ] "]
 fts_subtasks = ["- [ ] ", "* [ ] "]
 todo_tokens = ["TODO", "FIXME"]
+sync_interval = 3600  # Seconds between project scans. Set to 0 to always rescan. Press 's' to force sync.
 

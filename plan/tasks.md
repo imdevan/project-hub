@@ -44,10 +44,15 @@ This project is a fork of another project made for managing aliases. The project
   - [x] 3.1.3 show loading index progress on bottom of tui while indexing in the background
 
 ## Feature 4: add sync_interval to config
-- [ ] 4.1 add sync_interval to config
-- only index after interval. time in seconds or time of day. 
-- default to 1 minute?
-- is there a way to do it on change? or on hover?
+- [x] 4.1 add sync_interval to config
+  - [x] 4.1.1 add sync_interval field to Config struct (default 3600s = 1 hour)
+  - [x] 4.1.2 add sync_interval to partialConfig parsing in config manager
+  - [x] 4.1.3 add projects_cache table to SQLite store with SaveProjectsCache/LoadProjectsCache
+  - [x] 4.1.4 load cached projects on startup when sync_interval hasn't expired, skip background scan
+  - [x] 4.1.5 save scanned projects to cache after indexing completes
+  - [x] 4.1.6 add 's' hotkey to force rescan all projects and reset interval
+  - [x] 4.1.7 set sync_interval=0 to always rescan (disable caching)
+  - [x] 4.1.8 update config template, example config, and help keys
 
 ## Feature 5: break down each ui element give it's own color in config
 - [x] 5.1 Add title, highlight_border, name, highlight_name, tasks, progress_bg, progress_fg, highlight_progress_bg, highlight_progress_fg to config overrides

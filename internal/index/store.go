@@ -2,6 +2,7 @@ package index
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -89,6 +90,12 @@ func (s *Store) migrate() error {
 			indexed_at TEXT    NOT NULL DEFAULT ''
 		);
 
+		CREATE TABLE IF NOT EXISTS projects_cache (
+			id         INTEGER PRIMARY KEY CHECK (id = 1),
+			data       TEXT    NOT NULL,
+			scanned_at TEXT    NOT NULL
+		);
+
 		CREATE TABLE IF NOT EXISTS pinned_projects (
 			path       TEXT    PRIMARY KEY
 		);
@@ -97,6 +104,45 @@ func (s *Store) migrate() error {
 		return fmt.Errorf("index: migrate: %w", err)
 	}
 	return nil
+}
+
+// SaveProjectsCache saves the scanned projects and current timestamp in SQLite database.
+func (s *Store) SaveProjectsCache(projects []domain.Project) error {
+	data, err := json.Marshal(projects)
+	if err != nil {
+		return fmt.Errorf("index: marshal projects: %w", err)
+	}
+	now := time.Now().UTC().Format(time.RFC3339)
+	_, err = s.db.Exec(`
+		INSERT INTO projects_cache (id, data, scanned_at)
+		VALUES (1, ?, ?)
+		ON CONFLICT(id) DO UPDATE SET
+			data       = excluded.data,
+			scanned_at = excluded.scanned_at
+	`, string(data), now)
+	if err != nil {
+		return fmt.Errorf("index: save projects cache: %w", err)
+	}
+	return nil
+}
+
+// LoadProjectsCache loads the cached projects and the last scanned timestamp.
+func (s *Store) LoadProjectsCache() ([]domain.Project, time.Time, error) {
+	var data string
+	var scannedAt string
+	err := s.db.QueryRow("SELECT data, scanned_at FROM projects_cache WHERE id = 1").Scan(&data, &scannedAt)
+	if err != nil {
+		return nil, time.Time{}, err
+	}
+	var projects []domain.Project
+	if err := json.Unmarshal([]byte(data), &projects); err != nil {
+		return nil, time.Time{}, fmt.Errorf("index: unmarshal projects: %w", err)
+	}
+	t, err := time.Parse(time.RFC3339, scannedAt)
+	if err != nil {
+		return projects, time.Time{}, nil
+	}
+	return projects, t, nil
 }
 
 // PinProject records a project path as pinned.

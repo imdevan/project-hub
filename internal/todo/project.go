@@ -1,47 +1,16 @@
 package todo
 
+import "github.com/super-todo/internal/domain"
+
 // TaskItem represents a single parsed task or subtask.
-type TaskItem struct {
-	Text      string
-	Completed bool
-}
+type TaskItem = domain.TaskItem
 
 // Feature represents a collection of tasks.
-type Feature struct {
-	Name  string
-	Tasks []TaskItem
-}
+type Feature = domain.Feature
 
-type TodoComment struct {
-	File string
-	Line int
-	Text string
-}
+type TodoComment = domain.TodoComment
 
-type FtsFileDetail struct {
-	Path           string
-	CompletedTasks int
-	TotalTasks     int
-	Features       []Feature
-}
+type FtsFileDetail = domain.FtsFileDetail
 
 // Project represents a scanned local development project.
-type Project struct {
-	Name           string
-	Path           string
-	CompletedTasks int
-	TotalTasks     int
-	TodoCount      int
-	Scanned        bool
-	Todos          []TodoComment
-	FtsFiles       []FtsFileDetail
-	Pinned         bool
-}
-
-// Progress returns the completion percentage of tasks, or 0 if no tasks exist.
-func (p Project) Progress() int {
-	if p.TotalTasks == 0 {
-		return 0
-	}
-	return (p.CompletedTasks * 100) / p.TotalTasks
-}
+type Project = domain.Project

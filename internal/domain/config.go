@@ -10,20 +10,20 @@ import (
 
 // Config describes the resolved configuration.
 type Config struct {
-	Editor               string `toml:"editor"`
-	Primary              string `toml:"primary"`
-	Secondary            string `toml:"secondary"`
-	Headings             string `toml:"headings"`
-	Text                 string `toml:"text"`
-	TextHighlight        string `toml:"text_highlight"`
-	DescriptionHighlight string `toml:"description_highlight"`
-	Tags                 string `toml:"tags"`
-	Flags                string `toml:"flags"`
-	Muted                string `toml:"muted"`
-	Accent               string `toml:"accent"`
-	Border               string `toml:"border"`
-	Error                string `toml:"error"`
-	Success              string `toml:"success"`
+	Editor                   string `toml:"editor"`
+	Primary                  string `toml:"primary"`
+	Secondary                string `toml:"secondary"`
+	Headings                 string `toml:"headings"`
+	Text                     string `toml:"text"`
+	TextHighlight            string `toml:"text_highlight"`
+	DescriptionHighlight     string `toml:"description_highlight"`
+	Tags                     string `toml:"tags"`
+	Flags                    string `toml:"flags"`
+	Muted                    string `toml:"muted"`
+	Accent                   string `toml:"accent"`
+	Border                   string `toml:"border"`
+	Error                    string `toml:"error"`
+	Success                  string `toml:"success"`
 	ColorTitle               string `toml:"color_title"`
 	ColorHighlightBorder     string `toml:"color_highlight_border"`
 	ColorName                string `toml:"color_name"`
@@ -33,22 +33,22 @@ type Config struct {
 	ColorProgressFg          string `toml:"color_progress_fg"`
 	ColorHighlightProgressBg  string `toml:"color_highlight_progress_bg"`
 	ColorHighlightProgressFg string `toml:"color_highlight_progress_fg"`
-	InteractiveDefault   bool   `toml:"interactive_default"`
-	PlainText            bool   `toml:"plain_text"`
-	ConfirmDelete        bool   `toml:"confirm_delete"`
-	ListSpacing          string `toml:"list_spacing"`
-	
+	InteractiveDefault       bool   `toml:"interactive_default"`
+	PlainText                bool   `toml:"plain_text"`
+	ConfirmDelete            bool   `toml:"confirm_delete"`
+	ListSpacing              string `toml:"list_spacing"`
+
 	// Alias settings
-	AliasFile          string            `toml:"alias_file"`
-	Shell              string            `toml:"shell"`
-	IndexFolders       []string          `toml:"index_folders"`
-	CacheInterval      int               `toml:"cache_interval"`
-	ScriptIcons        map[string]string `toml:"script_icons"`
-	AutoAliasSeparator     string `toml:"auto_alias_separator"`
-	AutoAliasLowercase     bool   `toml:"auto_alias_lowercase"`
-	DefaultAliasPartLength int    `toml:"default_alias_part_length"`
-	HomeIcon               string `toml:"home_icon"`
-	DefaultSortBy          string `toml:"default_sort_by"`
+	AliasFile              string            `toml:"alias_file"`
+	Shell                  string            `toml:"shell"`
+	IndexFolders           []string          `toml:"index_folders"`
+	CacheInterval          int               `toml:"cache_interval"`
+	ScriptIcons            map[string]string `toml:"script_icons"`
+	AutoAliasSeparator     string            `toml:"auto_alias_separator"`
+	AutoAliasLowercase     bool              `toml:"auto_alias_lowercase"`
+	DefaultAliasPartLength int               `toml:"default_alias_part_length"`
+	HomeIcon               string            `toml:"home_icon"`
+	DefaultSortBy          string            `toml:"default_sort_by"`
 	FunctionAlias          string            `toml:"function_alias"`
 	InteractiveAlias       string            `toml:"interactive_alias"`
 
@@ -61,6 +61,7 @@ type Config struct {
 	TodoTokens    []string `toml:"todo_tokens"`
 	ExitWithAlias string   `toml:"exit_with_alias"`
 	ShowTaskless  bool     `toml:"show_taskless"`
+	SyncInterval  int      `toml:"sync_interval"`
 }
 
 // DefaultConfig returns the default configuration values.
@@ -68,7 +69,7 @@ func DefaultConfig() Config {
 	home, _ := os.UserHomeDir()
 	detectedShell := shelladapter.DetectShell()
 	aliasFile := filepath.Join(home, ".aliases", GetAliasFileName(detectedShell))
-	
+
 	return Config{
 		Editor:               "nvim",
 		Headings:             "15",
@@ -110,6 +111,7 @@ func DefaultConfig() Config {
 		TodoTokens:    []string{"TODO", "FIXME"},
 		ExitWithAlias: "",
 		ShowTaskless:  false,
+		SyncInterval:  3600,
 	}
 }
 

@@ -48,14 +48,31 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 		pinnedMap, _ = store.GetPinnedProjects()
 	}
 
-	projects := make([]Project, len(dirs))
-	for i, dir := range dirs {
-		proj := Project{
-			Name:   filepath.Base(dir),
-			Path:   dir,
-			Pinned: pinnedMap[dir],
+	// Check cache: if sync_interval > 0 and cache is fresh, load from cache
+	var projects []Project
+	usedCache := false
+	if store != nil && cfg.SyncInterval > 0 {
+		cached, scannedAt, cacheErr := store.LoadProjectsCache()
+		if cacheErr == nil && len(cached) > 0 && time.Since(scannedAt) < time.Duration(cfg.SyncInterval)*time.Second {
+			// Restore pinned state from DB (cache may be stale on pins)
+			for i := range cached {
+				cached[i].Pinned = pinnedMap[cached[i].Path]
+			}
+			projects = cached
+			usedCache = true
 		}
-		projects[i] = proj
+	}
+
+	if !usedCache {
+		projects = make([]Project, len(dirs))
+		for i, dir := range dirs {
+			proj := Project{
+				Name:   filepath.Base(dir),
+				Path:   dir,
+				Pinned: pinnedMap[dir],
+			}
+			projects[i] = proj
+		}
 	}
 
 	sort.SliceStable(projects, func(i, j int) bool {
@@ -90,7 +107,7 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 		projects:      projects,
 		scanner:       scanner,
 		spinner:       s,
-		indexing:      true,
+		indexing:      !usedCache,
 		indexingIndex: 0,
 		activeView:    "list",
 	}
@@ -313,7 +330,7 @@ type projectListModel struct {
 }
 
 func (m projectListModel) Init() tea.Cmd {
-	if len(m.projects) > 0 {
+	if m.indexing && len(m.projects) > 0 {
 		return tea.Batch(
 			m.spinner.Tick,
 			scanProjectCmd(m.scanner, 0, m.projects[0].Path),
@@ -367,6 +384,11 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.indexing = false
 			m.indexingComplete = true
+			// Save scanned projects to cache
+			if s, err := index.NewStore(); err == nil {
+				_ = s.SaveProjectsCache(m.projects)
+				s.Close()
+			}
 			return m, delayClearIndexingCmd()
 		}
 
@@ -456,6 +478,28 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.list.Select(newCursorIdx)
 				return m, nil
+			}
+
+		case "s":
+			if !m.indexing {
+				// Reset all projects to unscanned state and start fresh scan
+				for i := range m.projects {
+					m.projects[i].Scanned = false
+					m.projects[i].CompletedTasks = 0
+					m.projects[i].TotalTasks = 0
+					m.projects[i].TodoCount = 0
+					m.projects[i].Todos = nil
+					m.projects[i].FtsFiles = nil
+				}
+				m.indexing = true
+				m.indexingIndex = 0
+				m.indexingComplete = false
+				items := buildListItems(m.projects, m.config.ShowTaskless, m.config)
+				m.list.SetItems(items)
+				return m, tea.Batch(
+					m.spinner.Tick,
+					scanProjectCmd(m.scanner, 0, m.projects[0].Path),
+				)
 			}
 
 		case "enter":
@@ -578,7 +622,15 @@ func (m projectListModel) allHelpKeys() []key.Binding {
 	return []key.Binding{
 		key.NewBinding(
 			key.WithKeys("enter"),
-			key.WithHelp("enter/o", "open project in editor"),
+			key.WithHelp("enter/o", "open project"),
+		),
+		key.NewBinding(
+			key.WithKeys("p"),
+			key.WithHelp("p", "pin/unpin"),
+		),
+		key.NewBinding(
+			key.WithKeys("s"),
+			key.WithHelp("s", "sync"),
 		),
 	}
 }
