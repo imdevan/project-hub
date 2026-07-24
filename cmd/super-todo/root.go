@@ -66,6 +66,15 @@ func newRootCmd() *cobra.Command {
 
 			cfg := config.Load(cwd, opts.configPath)
 
+			store, err := index.NewStore()
+			if err == nil {
+				defer store.Close()
+				indexer := index.NewIndexer(store, cfg)
+				if indexer.NeedsRefresh() {
+					_, _ = ui.RefreshWithSpinner(indexer, ui.ThemeFromConfig(cfg))
+				}
+			}
+
 			return todo.RunProjectListing(cfg, cwd)
 		},
 	}

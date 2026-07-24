@@ -9,6 +9,7 @@ import (
 	"github.com/super-todo/internal/config"
 	"github.com/super-todo/internal/flags"
 	"github.com/super-todo/internal/index"
+	"github.com/super-todo/internal/ui"
 )
 
 func newIndexCmd() *cobra.Command {
@@ -42,14 +43,15 @@ func newIndexCmd() *cobra.Command {
 				return nil
 			}
 
-			res := indexer.Refresh()
+			res, err := ui.RefreshWithSpinner(indexer, ui.ThemeFromConfig(cfg))
+			if err != nil {
+				return err
+			}
 			if len(res.Errors) > 0 {
 				for _, e := range res.Errors {
 					cmd.Printf("warning: %v\n", e)
 				}
 			}
-			cmd.Printf("Indexed %d aliases from %d files (skipped %d unchanged) in %v\n",
-				res.AliasesStored, res.FilesScanned, res.FilesSkipped, res.Duration)
 			return nil
 		},
 	}

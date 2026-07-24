@@ -42,7 +42,9 @@ func newSearchCmd() *cobra.Command {
 			// Ensure index is fresh before searching.
 			indexer := index.NewIndexer(store, cfg)
 			if indexer.NeedsRefresh() {
-				indexer.Refresh()
+				if _, err := ui.RefreshWithSpinner(indexer, ui.ThemeFromConfig(cfg)); err != nil {
+					return err
+				}
 			}
 
 			if len(args) == 0 {

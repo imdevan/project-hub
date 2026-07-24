@@ -21,7 +21,8 @@ import (
 // RunProjectListing launches the interactive TUI for listing projects.
 func RunProjectListing(cfg domain.Config, cwd string) error {
 	scanner := NewScanner(cfg)
-	projects, err := scanner.ScanProjects(cwd)
+	theme := ui.ThemeFromConfig(cfg)
+	projects, err := scanProjectsWithSpinner(scanner, cwd, theme)
 	if err != nil {
 		return fmt.Errorf("failed to scan projects: %w", err)
 	}
@@ -39,7 +40,6 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 		}
 	}
 
-	theme := ui.ThemeFromConfig(cfg)
 	delegate := projectDelegate{theme: theme}
 
 	listModel := ui.NewListModel(items, delegate, 80, 20, theme)
@@ -185,13 +185,13 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(d.theme.Primary).
 			Padding(0, 1).
-			Width(contentWidth).
+			Width(targetTotalWidth).
 			Render(content)
 	} else {
 		rendered = lipgloss.NewStyle().
 			Border(lipgloss.Border{}, false, false, false, false).
 			Padding(1, 2).
-			Width(contentWidth).
+			Width(targetTotalWidth).
 			Render(content)
 	}
 
