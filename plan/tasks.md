@@ -87,3 +87,41 @@ This project is a fork of another project made for managing aliases. The project
   - [x] 10.1.1 use go template structure (e.g. cd {{.Project}} && nvim {{.TaskFile}})
   - [x] 10.1.2 keep set/not set handling (if not set open inline in TUI)
 
+## Feature 11: view project
+- [x] 11.1 on enter navigate to "Project page"
+- [x] 11.2 new view showing list of project todos and tasks
+
+example 
+
+```
+ ╭────────────────────────────────────────────────────────────────╮
+ │                                                                │
+ │   aliases                               ...clis/aliases        │
+ │   █████████████████████████████████████████████████████        │
+ │   (26/26) tasks complete  3 todos                              │
+ │                                                                │
+ │ │ Todos:                                                       │
+ │ │ // TODO: this is a todo line item                            │
+ │ │ .../The Wheel/b                                              │
+ │                                                                │
+ │   // TODO: this is a todo line item                            │
+ │   .../The Wheel/b                                              │
+ │                                                                │
+ │   plan/tasks.md                                                │
+ │   █████████████████████████████████████████████████████        │
+ │   (51/51) tasks complete  0 todos  .../The Wheel/l             │
+ │                                                                │
+ │   plan/kicked.md                                               │
+ │   █████████████████████████████████████████████████████        │
+ │   (51/51) tasks complete  0 todos  .../The Wheel/l             │
+
+```
+- [x] 11.3 the project page should be a completely separate ui from the list view
+  - [x] 11.3.1 create separate UI under project_ui.go
+  - [x] 11.3.2 project title section showing name (left) and location (justified right), total progress bar, and completion/todo count
+  - [x] 11.3.3 scrollable list containing individual highlightable TODO comments (with text and relative path location) and task files (with path, progress bar, completion stats)
+  - [x] 11.3.4 enter on TODO comment opens that todo at the correct line number, enter on task file opens that task file
+- [x] 11.4 show separate tabs on Project page (TODOs tab and Tasks tab) with separate scrolling, selection state, and pagination
+
+
+
