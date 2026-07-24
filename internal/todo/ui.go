@@ -431,6 +431,9 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 
+				// Reset list filter to exit the filtering view
+				m.list.ResetFilter()
+
 				sort.SliceStable(m.projects, func(i, j int) bool {
 					if m.projects[i].Pinned && !m.projects[j].Pinned {
 						return true
