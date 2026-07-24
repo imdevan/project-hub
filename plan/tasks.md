@@ -1,69 +1,66 @@
 # Context
 
-`aliases` is an alias manager for your favorite shell. Companion to `b` (bookmark manager). Lives at `cmd/aliases`. Binary name TBD: `a` | `am` | `aliases`.
+This project is a fork of another project made for managing aliases. The project has been renamed to super-todo, but the functionality remains. It is being repurposed to index and show all current project tasks and todo items in given project folders.
 
 # Definitions
 
-- **alias file** — default storage at `~/.aliases/aliases.zsh`; where `am add` writes new aliases
-- **index folders** — user-defined glob patterns of dirs to scan for alias files (e.g. `~/dotfiles`)
-- **wrapper function** — shell function sourced by user's rc file; re-sources alias file after add/edit/delete and handles `am` output (e.g. copy to clipboard)
+- **fts**: feature/task/subtask; used when referring to an action that could affect any of the three levels
+- **feature**: Defined by a markdown header matching `## Feature {feature_number}: Feature Name`
+- **task**: Defined by `- [ ] {feature_number}.{task_number} Task description`
+- **subtask**: Defined by `- [ ] {feature_number}.{task_number}.{subtask_number} Subtask description`
 
 # v0.1.0
 
-## Feature 1: Simplify
-At it's core aliases is a simpler version of `bookmark`.
-- [x] 1.1 rename bookmark / bm to aliases / al 
-- [x] 1.2 remove directory, file, and tmux rename flags. 
-- the bookmark script becomes the alias value
-- alias is only name, value, description. 
-- aliases add name value description
+## Feature 1: Commands & CLI Cleanup
+  - [x] 1.1 Update CLI entrypoints and structure
+    - notes: Align commands with new super-todo scope.
+    - [x] 1.1.1 Configure root command to launch the project-listing interactive TUI
+    - [x] 1.1.2 Soft remove or disable unrelated alias/bookmark commands
+    - [x] 1.1.3 Rename references from the old project/alias schema to super-todo
 
+## Feature 2: Project & Todo Indexing
+  - [x] 2.1 Implement project scanner and discovery
+    - notes: Locate project root folders based on configuration and directory markers.
+    - [x] 2.1.1 Use existing indexing logic to scan target directories for projects
+    - [x] 2.1.2 Identify project name from folder name or .git repository
+    - [x] 2.1.3 Support standard ignore_folders (e.g., node_modules, dist, bin) in scanner
+  - [x] 2.2 ignore_folders should be included in config init
 
-## Feature 2: Project bootstrap
-  - [x] 2.1 Set up `cmd/aliases` entrypoint and wire cobra root command
-  - [x] 2.2 Define domain types: `Alias` (name, value, description, source file) simplify bookmark
-  - [x] 2.3 Config scaffold: `~/.config/aliases/config.toml`, options: `shell`, `alias_file`, `index_folders`, `cache_interval`, `script_icons`
+  - [x] 2.3 Scan and parse codebase TODO comments
+    - notes: Scan files within projects to extract todo count.
+    - [x] 2.3.1 Traverse project directories while respecting ignore lists
+    - [x] 2.3.2 Count todo comments (e.g., // TODO, # TODO)
+  - [x] 2.4 refine project traversal
+    - [x] 2.4.1 index_folders can and likely do contain multiple projects
+    - [x] 2.4.2 projects should be parsed by detecting a .git directory in the project root. 
+    - tasks are tokens identied above in md files
+    - todo items are todo comments in a given project, they are not tasks, and are countered separately.
+    - ignore config.ignore_folders when indexing
+  
+## Feature 3: index in the background
+- [ ] 3.1 lazy index projects. 
+- load tui first.
+- show current project statuses 
+- show loading index progress on bottom of tui while indexing in the background
 
-## Feature 3: Alias storage
-  - [x] 3.1 Read/write aliases from default alias file (`~/.aliases/aliases.zsh`) basically same as bookmark, but change the location
-  - [x] 3.2 Parse alias syntax from shell files (`alias name='value' # description`)
-  - [x] 3.3 Write alias back in correct shell syntax on add/edit/delete
+## Feature 4: Task & Feature (FTS) Parsing
+  - [x] 4.1 Implement Markdown task parser for FTS files
+    - notes: Parse markdown planning files matching the FTS definitions.
+    - [x] 4.1.1 Scan project folders for task files based on configure patterns
+    - [x] 4.1.2 Parse Features, Tasks, and Subtasks based on markdown headers and checkbox patterns
+    - [x] 4.1.3 Calculate completion percentage based on task and subtask status (checked vs unchecked)
 
-## Feature 4: `am add`
-  - [x] 4.1 Same as bookmark but simpler
-  - [x] 4.2 Write to alias file
-## Feature 5: `am edit`
-  - [x] 5.1 Same as bookmark but simpler
-  - [x] 5.2 Pre-fill form with current values
-  - [x] 5.3 Write updated alias back to source file
+## Feature 5: Interactive TUI
+  - [x] 5.1 Design and build the projects list TUI
+    - notes: Use Bubble Tea/Bubbles to build the TUI inline.
+    - [x] 5.1.1 Create list view of discovered projects
+    - [x] 5.1.2 Display progress bar and completion ratio (complete / total) for each project
+    - [x] 5.1.3 Display total count of source code TODO items
+    - [x] 5.1.4 Style the active project list item with an ANSI border
 
-## Feature 6: `am delete`
-  - [x] 6.1 Same as bookmark 
-  - [x] 6.2 Confirm prompt
-
-## Feature 7: `am` (interactive list)
-  - [x] 7.1 Same as bookmark but simpler
-
-## Feature 8: Shell wrapper
-  - [x] 8.1 Generate shell wrapper function (`am()`) for zsh
-  - [x] 8.2 Re-source alias file after mutating commands
-  - [x] 8.3 `am config init` prints or installs wrapper snippet to rc file
-
-## Feature 9: `am config` / `am config init`
-  - [x] 9.1 `am config` — show current config
-  - [x] 9.2 `am config init` — interactive setup: shell, alias file path, index folders
-
-
-## Feature 10: alias gen function refactor
-- [x] 10.1 update alias gen function to use double quotes 
-- alias name = "value" # description
-- [x] 10.2 create util function for generating alias name
-- [x] 10.3 create util function for escaping alias name
-- example
-```bash
-aliases add t1 "echo hi" -> no change
-aliases add t1 'echo "hi"' -> "echo 'hi'"
-aliases add t1 "echo 'hi'" -> no change
-```
-- [x] 10.4 share as much logic as possible between add and edit
-
+## Feature 6: Configuration Updates
+  - [x] 6.1 Update configuration model and default TOML
+    - notes: Add configuration fields supporting the new indexer and parser.
+    - [x] 6.1.1 Add ignore_folders property to the config structure
+    - [x] 6.1.2 Add fts tokens and definitions to the config to identify task files
+    - [x] 6.1.3 Update example-config.toml and documentation
