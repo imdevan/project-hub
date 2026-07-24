@@ -20,6 +20,25 @@ func NewScanner(cfg domain.Config) *Scanner {
 
 // ScanProjects finds and scans all projects according to config.
 func (s *Scanner) ScanProjects(cwd string) ([]Project, error) {
+	projectDirs, err := s.ResolveProjectDirs(cwd)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Scan each resolved project directory.
+	var projects []Project
+	for _, dir := range projectDirs {
+		proj, err := s.ScanProject(dir)
+		if err == nil {
+			projects = append(projects, proj)
+		}
+	}
+
+	return projects, nil
+}
+
+// ResolveProjectDirs resolves the project root directories according to config without scanning them.
+func (s *Scanner) ResolveProjectDirs(cwd string) ([]string, error) {
 	var projectDirs []string
 	visited := make(map[string]bool)
 
@@ -76,16 +95,7 @@ func (s *Scanner) ScanProjects(cwd string) ([]Project, error) {
 		}
 	}
 
-	// 2. Scan each resolved project directory.
-	var projects []Project
-	for _, dir := range projectDirs {
-		proj, err := s.ScanProject(dir)
-		if err == nil {
-			projects = append(projects, proj)
-		}
-	}
-
-	return projects, nil
+	return projectDirs, nil
 }
 
 // discoverProjects traverses rootDir recursively to find directories containing a .git subdirectory.

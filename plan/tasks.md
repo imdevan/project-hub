@@ -38,10 +38,10 @@ This project is a fork of another project made for managing aliases. The project
     - ignore config.ignore_folders when indexing
   
 ## Feature 3: index in the background
-- [ ] 3.1 lazy index projects. 
-- load tui first.
-- show current project statuses 
-- show loading index progress on bottom of tui while indexing in the background
+- [x] 3.1 lazy index projects. 
+  - [x] 3.1.1 load tui first.
+  - [x] 3.1.2 show current project statuses 
+  - [x] 3.1.3 show loading index progress on bottom of tui while indexing in the background
 
 ## Feature 4: Task & Feature (FTS) Parsing
   - [x] 4.1 Implement Markdown task parser for FTS files

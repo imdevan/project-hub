@@ -6,9 +6,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
@@ -23,18 +25,25 @@ import (
 func RunProjectListing(cfg domain.Config, cwd string) error {
 	scanner := NewScanner(cfg)
 	theme := ui.ThemeFromConfig(cfg)
-	projects, err := scanProjectsWithSpinner(scanner, cwd, theme)
+
+	dirs, err := scanner.ResolveProjectDirs(cwd)
 	if err != nil {
-		return fmt.Errorf("failed to scan projects: %w", err)
+		return fmt.Errorf("failed to resolve project directories: %w", err)
 	}
 
-	if len(projects) == 0 {
+	if len(dirs) == 0 {
 		fmt.Println("No projects discovered in index folders or current directory.")
 		return nil
 	}
 
-	items := make([]list.Item, len(projects))
-	for i, proj := range projects {
+	projects := make([]Project, len(dirs))
+	items := make([]list.Item, len(dirs))
+	for i, dir := range dirs {
+		proj := Project{
+			Name: filepath.Base(dir),
+			Path: dir,
+		}
+		projects[i] = proj
 		items[i] = projectItem{
 			Project: proj,
 			Config:  cfg,
@@ -48,12 +57,21 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 	listModel.SetShowStatusBar(false)
 	listModel.SetFilteringEnabled(true)
 
+	s := spinner.New()
+	s.Spinner = spinner.Dot
+	s.Style = lipgloss.NewStyle().Foreground(theme.Primary)
+
 	model := projectListModel{
-		list:       listModel,
-		theme:      theme,
-		responsive: ui.NewResponsiveManager(80),
-		config:     cfg,
-		cwd:        cwd,
+		list:          listModel,
+		theme:         theme,
+		responsive:    ui.NewResponsiveManager(80),
+		config:        cfg,
+		cwd:           cwd,
+		projects:      projects,
+		scanner:       scanner,
+		spinner:       s,
+		indexing:      true,
+		indexingIndex: 0,
 	}
 
 	model.list.AdditionalShortHelpKeys = model.getShortHelpKeys
@@ -224,26 +242,104 @@ func truncatePath(path string, maxLen int) string {
 	return "..." + path[len(path)-(maxLen-3):]
 }
 
+type scanProjectResultMsg struct {
+	index int
+	proj  Project
+	err   error
+}
+
+func scanProjectCmd(scanner *Scanner, index int, dir string) tea.Cmd {
+	return func() tea.Msg {
+		proj, err := scanner.ScanProject(dir)
+		return scanProjectResultMsg{index: index, proj: proj, err: err}
+	}
+}
+
+type clearIndexingStatusMsg struct{}
+
+func delayClearIndexingCmd() tea.Cmd {
+	return tea.Tick(3*time.Second, func(t time.Time) tea.Msg {
+		return clearIndexingStatusMsg{}
+	})
+}
+
 type projectListModel struct {
-	list       list.Model
-	theme      ui.Theme
-	responsive *ui.ResponsiveManager
-	config     domain.Config
-	cwd        string
-	message    string
+	list        list.Model
+	theme       ui.Theme
+	responsive  *ui.ResponsiveManager
+	config      domain.Config
+	cwd         string
+	message     string
 	selectedCmd string
+	projects    []Project
+	scanner     *Scanner
+	spinner     spinner.Model
+	indexing    bool
+	indexingIndex int
+	indexingComplete bool
+	screenW     int
+	screenH     int
 }
 
 func (m projectListModel) Init() tea.Cmd {
+	if len(m.projects) > 0 {
+		return tea.Batch(
+			m.spinner.Tick,
+			scanProjectCmd(m.scanner, 0, m.projects[0].Path),
+		)
+	}
 	return nil
 }
 
 func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
+		m.screenW = msg.Width
+		m.screenH = msg.Height
 		m.responsive.SetWidth(msg.Width)
 		width, height := m.responsive.GetListDimensions(msg.Width, msg.Height)
+		if m.indexing || m.indexingComplete {
+			height -= 2
+		}
 		m.list.SetSize(width, height)
+		return m, nil
+
+	case scanProjectResultMsg:
+		if msg.err == nil {
+			m.projects[msg.index] = msg.proj
+
+			items := make([]list.Item, len(m.projects))
+			for i, p := range m.projects {
+				items[i] = projectItem{
+					Project: p,
+					Config:  m.config,
+				}
+			}
+			m.list.SetItems(items)
+		}
+
+		nextIndex := msg.index + 1
+		if nextIndex < len(m.projects) {
+			m.indexingIndex = nextIndex
+			return m, scanProjectCmd(m.scanner, nextIndex, m.projects[nextIndex].Path)
+		} else {
+			m.indexing = false
+			m.indexingComplete = true
+			return m, delayClearIndexingCmd()
+		}
+
+	case clearIndexingStatusMsg:
+		m.indexingComplete = false
+		width, height := m.responsive.GetListDimensions(m.screenW, m.screenH)
+		m.list.SetSize(width, height)
+		return m, nil
+
+	case spinner.TickMsg:
+		if m.indexing {
+			var cmd tea.Cmd
+			m.spinner, cmd = m.spinner.Update(msg)
+			return m, cmd
+		}
 		return m, nil
 
 	case tea.KeyMsg:
@@ -315,6 +411,16 @@ func (m projectListModel) View() string {
 		body = lipgloss.NewStyle().Foreground(m.theme.Error).Render(m.message) + "\n\n"
 	}
 	body += m.list.View()
+
+	if m.indexing {
+		currentProjName := m.projects[m.indexingIndex].Name
+		statusStr := fmt.Sprintf("\n%s indexing tasks: %s (%d/%d)...",
+			m.spinner.View(),
+			currentProjName,
+			m.indexingIndex+1,
+			len(m.projects))
+		body += lipgloss.NewStyle().Foreground(m.theme.Muted).Render(statusStr)
+	}
 
 	return m.responsive.FullWidthFrameStyle(m.theme).Render(body)
 }
