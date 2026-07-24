@@ -15,6 +15,11 @@
 # ignore_folders = [{{range $index, $element := .IgnoreFolders}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
 # exit_with_alias = {{printf "%q" .ExitWithAlias}}  # Go template command to output on exit (e.g. "cd {{"{{.Project}}"}} && nvim {{"{{.TaskFile}}"}}")
 # show_taskless = {{.ShowTaskless}}  # When false: hide projects that don't have any tasks
+# fts_files = [{{range $index, $element := .FtsFiles}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
+# fts_features = [{{range $index, $element := .FtsFeatures}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
+# fts_tasks = [{{range $index, $element := .FtsTasks}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
+# fts_subtasks = [{{range $index, $element := .FtsSubtasks}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
+# todo_tokens = [{{range $index, $element := .TodoTokens}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
 # cache_interval = {{.CacheInterval}}
 # script_icons = {}
 
