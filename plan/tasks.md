@@ -76,3 +76,8 @@ This project is a fork of another project made for managing aliases. The project
     - [x] 8.1.1 Add ignore_folders property to the config structure
     - [x] 8.1.2 Add fts tokens and definitions to the config to identify task files
     - [x] 8.1.3 Update example-config.toml and documentation
+
+## Feature 9: add show_taskless
+- [x] 9.1 add show_taskless to config default to false
+  - [x] 9.1.1 when false do not show projects without any tasks found
+

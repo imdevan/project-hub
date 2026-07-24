@@ -212,6 +212,7 @@ func (s *Scanner) ScanProject(dir string) (Project, error) {
 		return nil
 	})
 
+	proj.Scanned = true
 	return proj, err
 }
 

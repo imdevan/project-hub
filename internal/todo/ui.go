@@ -37,18 +37,15 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 	}
 
 	projects := make([]Project, len(dirs))
-	items := make([]list.Item, len(dirs))
 	for i, dir := range dirs {
 		proj := Project{
 			Name: filepath.Base(dir),
 			Path: dir,
 		}
 		projects[i] = proj
-		items[i] = projectItem{
-			Project: proj,
-			Config:  cfg,
-		}
 	}
+
+	items := buildListItems(projects, cfg.ShowTaskless, cfg)
 
 	delegate := projectDelegate{theme: theme}
 
@@ -311,14 +308,9 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.err == nil {
 			m.projects[msg.index] = msg.proj
 
-			items := make([]list.Item, len(m.projects))
-			for i, p := range m.projects {
-				items[i] = projectItem{
-					Project: p,
-					Config:  m.config,
-				}
-			}
+			items := buildListItems(m.projects, m.config.ShowTaskless, m.config)
 			m.list.SetItems(items)
+			m.list.Title = fmt.Sprintf("%s Projects (%d)", icon.Bookmarks.String(), len(items))
 		}
 
 		nextIndex := msg.index + 1
@@ -423,9 +415,27 @@ func (m projectListModel) View() string {
 			m.indexingIndex+1,
 			len(m.projects))
 		body += lipgloss.NewStyle().Foreground(m.theme.Muted).Render(statusStr)
+	} else if m.indexingComplete {
+		statusStr := fmt.Sprintf("\n%s indexing tasks complete",
+			lipgloss.NewStyle().Foreground(m.theme.Success).Render("✔"))
+		body += lipgloss.NewStyle().Foreground(m.theme.Muted).Render(statusStr)
 	}
 
 	return m.responsive.FullWidthFrameStyle(m.theme).Render(body)
+}
+
+func buildListItems(projects []Project, showTaskless bool, config domain.Config) []list.Item {
+	var items []list.Item
+	for _, p := range projects {
+		if !showTaskless && p.Scanned && p.TotalTasks == 0 {
+			continue
+		}
+		items = append(items, projectItem{
+			Project: p,
+			Config:  config,
+		})
+	}
+	return items
 }
 
 func (m projectListModel) allHelpKeys() []key.Binding {

@@ -439,6 +439,7 @@ color_progress_bg = "17"
 color_progress_fg = "18"
 color_highlight_progress_bg = "19"
 color_highlight_progress_fg = "20"
+show_taskless = true
 `
 	_ = os.WriteFile(configPath, []byte(tomlContent), 0o644)
 
@@ -474,6 +475,9 @@ color_highlight_progress_fg = "20"
 	}
 	if cfg.ColorHighlightProgressFg != "20" {
 		t.Errorf("expected ColorHighlightProgressFg 20, got %q", cfg.ColorHighlightProgressFg)
+	}
+	if !cfg.ShowTaskless {
+		t.Errorf("expected ShowTaskless true, got false")
 	}
 }
 

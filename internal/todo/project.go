@@ -19,6 +19,7 @@ type Project struct {
 	CompletedTasks int
 	TotalTasks     int
 	TodoCount      int
+	Scanned        bool
 }
 
 // Progress returns the completion percentage of tasks, or 0 if no tasks exist.
