@@ -12,6 +12,7 @@
 # alias_file = {{printf "%q" .AliasFile}}  # File where aliases are stored
 # shell = {{printf "%q" .Shell}}  # Options: bash, zsh, fish, nu
 # index_folders = []  # Glob patterns to scan for alias files (e.g. ["~/dotfiles/*.zsh"])
+# ignore_folders = [{{range $index, $element := .IgnoreFolders}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
 # cache_interval = {{.CacheInterval}}
 # script_icons = {}
 
@@ -53,3 +54,4 @@
 # border = {{printf "%q" .Border}}
 # error = {{printf "%q" .Error}}
 # success = {{printf "%q" .Success}}
+
