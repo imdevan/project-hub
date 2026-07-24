@@ -95,3 +95,66 @@ func main() {
 		t.Errorf("Expected 2 code TODOs, got %d", proj.TodoCount)
 	}
 }
+
+func TestScanProjectsDiscovery(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "todo-discover-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Create subdirectories
+	projAPath := filepath.Join(tempDir, "projA")
+	projBPath := filepath.Join(tempDir, "projB")
+	ignoredPath := filepath.Join(tempDir, "node_modules") // will be ignored
+	nonGitPath := filepath.Join(tempDir, "nonGit") // should not be detected as a project (will fallback if no projects discovered, but here there are other projects discovered)
+
+	for _, p := range []string{projAPath, projBPath, ignoredPath, nonGitPath} {
+		if err := os.Mkdir(p, 0755); err != nil {
+			t.Fatalf("failed to create dir: %v", err)
+		}
+	}
+
+	// Create .git folders in projA, projB, and node_modules
+	for _, p := range []string{projAPath, projBPath, ignoredPath} {
+		gitPath := filepath.Join(p, ".git")
+		if err := os.Mkdir(gitPath, 0755); err != nil {
+			t.Fatalf("failed to create git folder: %v", err)
+		}
+	}
+
+	cfg := domain.DefaultConfig()
+	// IgnoreFolders defaults to containing "node_modules"
+	cfg.IndexFolders = []string{filepath.Join(tempDir, "*")}
+
+	scanner := NewScanner(cfg)
+	projects, err := scanner.ScanProjects(tempDir)
+	if err != nil {
+		t.Fatalf("ScanProjects failed: %v", err)
+	}
+
+	// Should discover projA and projB, skip node_modules, and ignore nonGit (no .git)
+	if len(projects) != 2 {
+		t.Errorf("Expected 2 discovered projects, got %d", len(projects))
+		for _, p := range projects {
+			t.Logf("discovered: %s", p.Path)
+		}
+		return
+	}
+
+	discoveredA := false
+	discoveredB := false
+	for _, p := range projects {
+		if p.Name == "projA" {
+			discoveredA = true
+		}
+		if p.Name == "projB" {
+			discoveredB = true
+		}
+	}
+
+	if !discoveredA || !discoveredB {
+		t.Errorf("Expected projA and projB to be discovered")
+	}
+}
+

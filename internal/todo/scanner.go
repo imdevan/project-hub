@@ -21,13 +21,23 @@ func NewScanner(cfg domain.Config) *Scanner {
 // ScanProjects finds and scans all projects according to config.
 func (s *Scanner) ScanProjects(cwd string) ([]Project, error) {
 	var projectDirs []string
+	visited := make(map[string]bool)
 
-	// 1. Resolve target project directories from IndexFolders.
+	ignoreMap := make(map[string]bool)
+	for _, folder := range s.config.IgnoreFolders {
+		ignoreMap[strings.ToLower(folder)] = true
+	}
+
 	if len(s.config.IndexFolders) == 0 {
-		// Default to scanning the current directory as a single project
-		projectDirs = append(projectDirs, cwd)
+		discovered := s.discoverProjects(cwd)
+		for _, dir := range discovered {
+			absPath, err := filepath.Abs(dir)
+			if err == nil && !visited[absPath] {
+				visited[absPath] = true
+				projectDirs = append(projectDirs, absPath)
+			}
+		}
 	} else {
-		visited := make(map[string]bool)
 		for _, pattern := range s.config.IndexFolders {
 			expanded := expandPath(pattern)
 			matches, err := filepath.Glob(expanded)
@@ -40,17 +50,29 @@ func (s *Scanner) ScanProjects(cwd string) ([]Project, error) {
 					continue
 				}
 				if info.IsDir() {
-					absPath, err := filepath.Abs(match)
-					if err == nil && !visited[absPath] {
-						visited[absPath] = true
-						projectDirs = append(projectDirs, absPath)
+					dirName := strings.ToLower(filepath.Base(match))
+					if ignoreMap[dirName] {
+						continue
+					}
+
+					discovered := s.discoverProjects(match)
+					for _, dir := range discovered {
+						absPath, err := filepath.Abs(dir)
+						if err == nil && !visited[absPath] {
+							visited[absPath] = true
+							projectDirs = append(projectDirs, absPath)
+						}
 					}
 				}
 			}
 		}
-		// If nothing matched, fallback to current directory
-		if len(projectDirs) == 0 {
-			projectDirs = append(projectDirs, cwd)
+	}
+
+	// Fallback to cwd if no projects discovered
+	if len(projectDirs) == 0 {
+		absPath, err := filepath.Abs(cwd)
+		if err == nil {
+			projectDirs = append(projectDirs, absPath)
 		}
 	}
 
@@ -64,6 +86,42 @@ func (s *Scanner) ScanProjects(cwd string) ([]Project, error) {
 	}
 
 	return projects, nil
+}
+
+// discoverProjects traverses rootDir recursively to find directories containing a .git subdirectory.
+// It skips any directories named in config.IgnoreFolders.
+func (s *Scanner) discoverProjects(rootDir string) []string {
+	var projectDirs []string
+	ignoreMap := make(map[string]bool)
+	for _, folder := range s.config.IgnoreFolders {
+		ignoreMap[strings.ToLower(folder)] = true
+	}
+
+	_ = filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		if !info.IsDir() {
+			return nil
+		}
+
+		dirName := strings.ToLower(info.Name())
+		if ignoreMap[dirName] {
+			return filepath.SkipDir
+		}
+
+		// Check if this directory contains a .git folder
+		gitPath := filepath.Join(path, ".git")
+		gitInfo, err := os.Stat(gitPath)
+		if err == nil && gitInfo.IsDir() {
+			projectDirs = append(projectDirs, path)
+			return filepath.SkipDir // Found project root, do not descend deeper
+		}
+
+		return nil
+	})
+
+	return projectDirs
 }
 
 // ScanProject scans a single project directory recursively.
