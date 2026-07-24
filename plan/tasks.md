@@ -81,3 +81,9 @@ This project is a fork of another project made for managing aliases. The project
 - [x] 9.1 add show_taskless to config default to false
   - [x] 9.1.1 when false do not show projects without any tasks found
 
+
+## Feature 10: replace run with cd
+- [x] 10.1 replace run_with_cd with exit_with_alias
+  - [x] 10.1.1 use go template structure (e.g. cd {{.Project}} && nvim {{.TaskFile}})
+  - [x] 10.1.2 keep set/not set handling (if not set open inline in TUI)
+

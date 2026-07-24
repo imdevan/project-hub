@@ -440,7 +440,7 @@ color_progress_fg = "18"
 color_highlight_progress_bg = "19"
 color_highlight_progress_fg = "20"
 show_taskless = true
-return_with_cd = true
+exit_with_alias = "cd {{.Project}}"
 `
 	_ = os.WriteFile(configPath, []byte(tomlContent), 0o644)
 
@@ -480,8 +480,8 @@ return_with_cd = true
 	if !cfg.ShowTaskless {
 		t.Errorf("expected ShowTaskless true, got false")
 	}
-	if !cfg.ReturnWithCd {
-		t.Errorf("expected ReturnWithCd true, got false")
+	if cfg.ExitWithAlias != "cd {{.Project}}" {
+		t.Errorf("expected ExitWithAlias 'cd {{.Project}}', got %q", cfg.ExitWithAlias)
 	}
 }
 

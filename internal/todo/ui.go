@@ -1,11 +1,13 @@
 package todo
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -366,15 +368,27 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 
-				if m.config.ReturnWithCd {
-					editorName := m.config.Editor
-					if editorName == "" {
-						editorName = "nvim"
+				if m.config.ExitWithAlias != "" {
+					tmpl, err := template.New("exit_with_alias").Funcs(template.FuncMap{
+						"quote": quoteShellArg,
+					}).Parse(m.config.ExitWithAlias)
+					if err != nil {
+						m.message = fmt.Sprintf("✗ template error: %s", err)
+						return m, nil
 					}
 
-					escapedProjPath := quoteShellArg(item.Project.Path)
-					escapedRelPath := quoteShellArg(relPath)
-					m.selectedCmd = fmt.Sprintf("cd %s && %s %s", escapedProjPath, editorName, escapedRelPath)
+					var buf bytes.Buffer
+					data := map[string]string{
+						"Project":     quoteShellArg(item.Project.Path),
+						"ProjectPath": quoteShellArg(item.Project.Path),
+						"TaskFile":    quoteShellArg(relPath),
+					}
+					if err := tmpl.Execute(&buf, data); err != nil {
+						m.message = fmt.Sprintf("✗ template execution error: %s", err)
+						return m, nil
+					}
+
+					m.selectedCmd = buf.String()
 					return m, tea.Quit
 				}
 

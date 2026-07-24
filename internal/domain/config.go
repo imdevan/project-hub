@@ -59,7 +59,7 @@ type Config struct {
 	FtsTasks      []string `toml:"fts_tasks"`
 	FtsSubtasks   []string `toml:"fts_subtasks"`
 	TodoTokens    []string `toml:"todo_tokens"`
-	ReturnWithCd  bool     `toml:"return_with_cd"`
+	ExitWithAlias string   `toml:"exit_with_alias"`
 	ShowTaskless  bool     `toml:"show_taskless"`
 }
 
@@ -108,7 +108,7 @@ func DefaultConfig() Config {
 		FtsTasks:      []string{"- [ ] ", "* [ ] "},
 		FtsSubtasks:   []string{"- [ ] ", "* [ ] "},
 		TodoTokens:    []string{"TODO", "FIXME"},
-		ReturnWithCd:  false,
+		ExitWithAlias: "",
 		ShowTaskless:  false,
 	}
 }

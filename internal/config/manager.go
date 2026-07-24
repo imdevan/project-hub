@@ -113,7 +113,7 @@ type partialConfig struct {
 	ConfirmDelete        *bool       `toml:"confirm_delete"`
 	ListSpacing          *string     `toml:"list_spacing"`
 	ShowTaskless         *bool       `toml:"show_taskless"`
-	ReturnWithCd         *bool       `toml:"return_with_cd"`
+	ExitWithAlias        *string     `toml:"exit_with_alias"`
 	AliasFile            *string     `toml:"alias_file"`
 	IndexFolders         interface{} `toml:"index_folders"`
 	CacheInterval        *int        `toml:"cache_interval"`
@@ -230,8 +230,8 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	if partial.ShowTaskless != nil {
 		config.ShowTaskless = *partial.ShowTaskless
 	}
-	if partial.ReturnWithCd != nil {
-		config.ReturnWithCd = *partial.ReturnWithCd
+	if partial.ExitWithAlias != nil {
+		config.ExitWithAlias = *partial.ExitWithAlias
 	}
 	if partial.AliasFile != nil {
 		config.AliasFile = expandPath(*partial.AliasFile)
