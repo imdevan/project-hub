@@ -11,6 +11,9 @@ const (
 	// Bookmarks icon
 	Bookmarks Icon = "\uf097"
 
+	// Pin icon
+	Pin Icon = "\uf435"
+
 	// Tmux icon
 	Tmux Icon = "\uebc8"
 

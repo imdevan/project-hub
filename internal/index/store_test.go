@@ -477,3 +477,47 @@ func TestIndexer_RefreshAsyncInProcess(t *testing.T) {
 		t.Error("expected NeedsRefresh=false after RefreshAsync")
 	}
 }
+
+func TestStore_ProjectPinning(t *testing.T) {
+	s := tempDB(t)
+
+	pinned, err := s.IsProjectPinned("/path/to/project")
+	if err != nil {
+		t.Fatalf("IsProjectPinned error: %v", err)
+	}
+	if pinned {
+		t.Error("expected project to not be pinned initially")
+	}
+
+	if err := s.PinProject("/path/to/project"); err != nil {
+		t.Fatalf("PinProject error: %v", err)
+	}
+
+	pinned, err = s.IsProjectPinned("/path/to/project")
+	if err != nil {
+		t.Fatalf("IsProjectPinned error: %v", err)
+	}
+	if !pinned {
+		t.Error("expected project to be pinned")
+	}
+
+	all, err := s.GetPinnedProjects()
+	if err != nil {
+		t.Fatalf("GetPinnedProjects error: %v", err)
+	}
+	if !all["/path/to/project"] {
+		t.Error("expected path to be in pinned projects map")
+	}
+
+	if err := s.UnpinProject("/path/to/project"); err != nil {
+		t.Fatalf("UnpinProject error: %v", err)
+	}
+
+	pinned, err = s.IsProjectPinned("/path/to/project")
+	if err != nil {
+		t.Fatalf("IsProjectPinned error: %v", err)
+	}
+	if pinned {
+		t.Error("expected project to be unpinned")
+	}
+}

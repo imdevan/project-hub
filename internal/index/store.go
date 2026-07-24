@@ -88,11 +88,61 @@ func (s *Store) migrate() error {
 			mtime      INTEGER NOT NULL DEFAULT 0,
 			indexed_at TEXT    NOT NULL DEFAULT ''
 		);
+
+		CREATE TABLE IF NOT EXISTS pinned_projects (
+			path       TEXT    PRIMARY KEY
+		);
 	`)
 	if err != nil {
 		return fmt.Errorf("index: migrate: %w", err)
 	}
 	return nil
+}
+
+// PinProject records a project path as pinned.
+func (s *Store) PinProject(path string) error {
+	_, err := s.db.Exec("INSERT OR IGNORE INTO pinned_projects (path) VALUES (?)", path)
+	if err != nil {
+		return fmt.Errorf("index: pin project: %w", err)
+	}
+	return nil
+}
+
+// UnpinProject removes a project path from pinned list.
+func (s *Store) UnpinProject(path string) error {
+	_, err := s.db.Exec("DELETE FROM pinned_projects WHERE path = ?", path)
+	if err != nil {
+		return fmt.Errorf("index: unpin project: %w", err)
+	}
+	return nil
+}
+
+// IsProjectPinned checks if a project path is pinned.
+func (s *Store) IsProjectPinned(path string) (bool, error) {
+	var count int
+	err := s.db.QueryRow("SELECT COUNT(*) FROM pinned_projects WHERE path = ?", path).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("index: check pinned project: %w", err)
+	}
+	return count > 0, nil
+}
+
+// GetPinnedProjects returns a set of all pinned project paths.
+func (s *Store) GetPinnedProjects() (map[string]bool, error) {
+	rows, err := s.db.Query("SELECT path FROM pinned_projects")
+	if err != nil {
+		return nil, fmt.Errorf("index: get pinned projects: %w", err)
+	}
+	defer rows.Close()
+
+	pinned := make(map[string]bool)
+	for rows.Next() {
+		var path string
+		if err := rows.Scan(&path); err == nil {
+			pinned[path] = true
+		}
+	}
+	return pinned, nil
 }
 
 // UpsertAlias inserts or updates a single alias in the index.

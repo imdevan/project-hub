@@ -35,6 +35,7 @@ type Project struct {
 	Scanned        bool
 	Todos          []TodoComment
 	FtsFiles       []FtsFileDetail
+	Pinned         bool
 }
 
 // Progress returns the completion percentage of tasks, or 0 if no tasks exist.

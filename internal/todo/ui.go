@@ -10,6 +10,8 @@ import (
 	"text/template"
 	"time"
 
+	"sort"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -20,6 +22,7 @@ import (
 	"github.com/super-todo/internal/adapters/icon"
 	"github.com/super-todo/internal/adapters/tty"
 	"github.com/super-todo/internal/domain"
+	"github.com/super-todo/internal/index"
 	"github.com/super-todo/internal/ui"
 )
 
@@ -38,14 +41,32 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 		return nil
 	}
 
+	store, err := index.NewStore()
+	var pinnedMap map[string]bool
+	if err == nil {
+		defer store.Close()
+		pinnedMap, _ = store.GetPinnedProjects()
+	}
+
 	projects := make([]Project, len(dirs))
 	for i, dir := range dirs {
 		proj := Project{
-			Name: filepath.Base(dir),
-			Path: dir,
+			Name:   filepath.Base(dir),
+			Path:   dir,
+			Pinned: pinnedMap[dir],
 		}
 		projects[i] = proj
 	}
+
+	sort.SliceStable(projects, func(i, j int) bool {
+		if projects[i].Pinned && !projects[j].Pinned {
+			return true
+		}
+		if !projects[i].Pinned && projects[j].Pinned {
+			return false
+		}
+		return strings.ToLower(projects[i].Name) < strings.ToLower(projects[j].Name)
+	})
 
 	items := buildListItems(projects, cfg.ShowTaskless, cfg)
 
@@ -148,7 +169,11 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 		contentWidth = 16
 	}
 
-	title := truncateString(proj.Project.Name, contentWidth)
+	titleText := proj.Project.Name
+	if proj.Project.Pinned {
+		titleText = titleText + " " + icon.Pin.String()
+	}
+	title := truncateString(titleText, contentWidth)
 	completed := proj.Project.CompletedTasks
 	total := proj.Project.TotalTasks
 	todoCount := proj.Project.TodoCount
@@ -316,7 +341,19 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case scanProjectResultMsg:
 		if msg.err == nil {
+			pinned := m.projects[msg.index].Pinned
 			m.projects[msg.index] = msg.proj
+			m.projects[msg.index].Pinned = pinned
+
+			sort.SliceStable(m.projects, func(i, j int) bool {
+				if m.projects[i].Pinned && !m.projects[j].Pinned {
+					return true
+				}
+				if !m.projects[i].Pinned && m.projects[j].Pinned {
+					return false
+				}
+				return strings.ToLower(m.projects[i].Name) < strings.ToLower(m.projects[j].Name)
+			})
 
 			items := buildListItems(m.projects, m.config.ShowTaskless, m.config)
 			m.list.SetItems(items)
@@ -373,6 +410,50 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "q", "esc", "ctrl+c":
 			return m, tea.Quit
+
+		case "p":
+			if item, ok := m.list.SelectedItem().(projectItem); ok {
+				store, err := index.NewStore()
+				if err == nil {
+					defer store.Close()
+					if item.Project.Pinned {
+						_ = store.UnpinProject(item.Project.Path)
+					} else {
+						_ = store.PinProject(item.Project.Path)
+					}
+				}
+
+				targetPath := item.Project.Path
+				for i := range m.projects {
+					if m.projects[i].Path == targetPath {
+						m.projects[i].Pinned = !m.projects[i].Pinned
+						break
+					}
+				}
+
+				sort.SliceStable(m.projects, func(i, j int) bool {
+					if m.projects[i].Pinned && !m.projects[j].Pinned {
+						return true
+					}
+					if !m.projects[i].Pinned && m.projects[j].Pinned {
+						return false
+					}
+					return strings.ToLower(m.projects[i].Name) < strings.ToLower(m.projects[j].Name)
+				})
+
+				items := buildListItems(m.projects, m.config.ShowTaskless, m.config)
+				m.list.SetItems(items)
+
+				newCursorIdx := 0
+				for idx, itm := range items {
+					if pi, ok := itm.(projectItem); ok && pi.Project.Path == targetPath {
+						newCursorIdx = idx
+						break
+					}
+				}
+				m.list.Select(newCursorIdx)
+				return m, nil
+			}
 
 		case "enter":
 			if item, ok := m.list.SelectedItem().(projectItem); ok {

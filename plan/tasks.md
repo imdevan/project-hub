@@ -124,4 +124,11 @@ example
 - [x] 11.4 show separate tabs on Project page (TODOs tab and Tasks tab) with separate scrolling, selection state, and pagination
 
 
+## Feature 12: pin a project
+- [x] 12.1 in project list view, hotkey 'p' will pin a project
+  - [x] 12.1.1 pinned projects appear at the top of the project lists
+  - [x] 12.1.2 use nf-oct-pin (\uf435) to indicate a project is pinned next to its name
+  - [x] 12.1.3 follow project to beginning of list and stay focused on item
+  - [x] 12.1.4 store pinned state in db
+
 
