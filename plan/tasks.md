@@ -50,8 +50,8 @@ This project is a fork of another project made for managing aliases. The project
 - is there a way to do it on change? or on hover?
 
 ## Feature 5: break down each ui element give it's own color in config
-- title, highlight_border, name, highlight_name, tasks, progress_bg, progress_fg, highlight_progress_bg_highlight_proress_fg. 
-- default to current colors
+- [x] 5.1 Add title, highlight_border, name, highlight_name, tasks, progress_bg, progress_fg, highlight_progress_bg, highlight_progress_fg to config overrides
+- [x] 5.2 Default to current color mapping when not specified
 
 
 

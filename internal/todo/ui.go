@@ -160,28 +160,31 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 		filled = (completed * barWidth) / total
 	}
 
-	bar := ""
-	for i := 0; i < barWidth; i++ {
-		if i < filled {
-			bar += "█"
-		} else {
-			bar += "░"
-		}
-	}
-
 	// Styles
-	titleStyle := lipgloss.NewStyle().Foreground(d.theme.Text).Bold(true)
-	barStyle := lipgloss.NewStyle().Foreground(d.theme.Primary)
-	statsStyle := lipgloss.NewStyle().Foreground(d.theme.Secondary)
+	titleStyle := lipgloss.NewStyle().Bold(true)
+	var barStr string
+	statsStyle := lipgloss.NewStyle().Foreground(d.theme.ColorTasks)
 	todoStyle := lipgloss.NewStyle().Foreground(d.theme.Error)
 	pathStyle := lipgloss.NewStyle().Foreground(d.theme.Muted)
 
 	if isSelected {
-		titleStyle = titleStyle.Foreground(d.theme.TextHighlight)
-		barStyle = barStyle.Foreground(d.theme.TextHighlight)
+		titleStyle = titleStyle.Foreground(d.theme.ColorHighlightName)
+
+		fgStyle := lipgloss.NewStyle().Foreground(d.theme.ColorHighlightProgressFg)
+		bgStyle := lipgloss.NewStyle().Foreground(d.theme.ColorHighlightProgressBg)
+		filledPart := fgStyle.Render(strings.Repeat("█", filled))
+		emptyPart := bgStyle.Render(strings.Repeat("░", barWidth-filled))
+		barStr = filledPart + emptyPart
+	} else {
+		titleStyle = titleStyle.Foreground(d.theme.ColorName)
+
+		fgStyle := lipgloss.NewStyle().Foreground(d.theme.ColorProgressFg)
+		bgStyle := lipgloss.NewStyle().Foreground(d.theme.ColorProgressBg)
+		filledPart := fgStyle.Render(strings.Repeat("█", filled))
+		emptyPart := bgStyle.Render(strings.Repeat("░", barWidth-filled))
+		barStr = filledPart + emptyPart
 	}
 
-	barStr := barStyle.Render(bar)
 	statsStr := statsStyle.Render(fmt.Sprintf("(%d/%d) tasks complete", completed, total))
 	todoStr := todoStyle.Render(fmt.Sprintf("%d todos", todoCount))
 
@@ -207,7 +210,7 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 	if isSelected {
 		rendered = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(d.theme.Primary).
+			BorderForeground(d.theme.ColorHighlightBorder).
 			Padding(0, 1).
 			Width(targetTotalWidth).
 			Render(content)

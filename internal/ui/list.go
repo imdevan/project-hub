@@ -52,9 +52,9 @@ func ApplyListStyles(model *list.Model, theme Theme) {
 	model.Styles.InactivePaginationDot = model.Styles.InactivePaginationDot.Foreground(theme.Muted)
 	model.Styles.DividerDot = model.Styles.DividerDot.Foreground(theme.Muted)
 	
-	// Title style: primary color, bold, no background, left aligned
+	// Title style: color_title, bold, no background, left aligned
 	model.Styles.Title = model.Styles.Title.
-		Foreground(theme.Primary).
+		Foreground(theme.ColorTitle).
 		Background(nil).
 		Bold(true).
 		Align(lipgloss.Left).

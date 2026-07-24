@@ -99,6 +99,15 @@ type partialConfig struct {
 	Border               *string     `toml:"border"`
 	Error                *string     `toml:"error"`
 	Success              *string     `toml:"success"`
+	ColorTitle               *string     `toml:"color_title"`
+	ColorHighlightBorder     *string     `toml:"color_highlight_border"`
+	ColorName                *string     `toml:"color_name"`
+	ColorHighlightName       *string     `toml:"color_highlight_name"`
+	ColorTasks               *string     `toml:"color_tasks"`
+	ColorProgressBg          *string     `toml:"color_progress_bg"`
+	ColorProgressFg          *string     `toml:"color_progress_fg"`
+	ColorHighlightProgressBg  *string     `toml:"color_highlight_progress_bg"`
+	ColorHighlightProgressFg *string     `toml:"color_highlight_progress_fg"`
 	InteractiveDefault   *bool       `toml:"interactive_default"`
 	PlainText            *bool       `toml:"plain_text"`
 	ConfirmDelete        *bool       `toml:"confirm_delete"`
@@ -176,6 +185,33 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.Success != nil {
 		config.Success = *partial.Success
+	}
+	if partial.ColorTitle != nil {
+		config.ColorTitle = *partial.ColorTitle
+	}
+	if partial.ColorHighlightBorder != nil {
+		config.ColorHighlightBorder = *partial.ColorHighlightBorder
+	}
+	if partial.ColorName != nil {
+		config.ColorName = *partial.ColorName
+	}
+	if partial.ColorHighlightName != nil {
+		config.ColorHighlightName = *partial.ColorHighlightName
+	}
+	if partial.ColorTasks != nil {
+		config.ColorTasks = *partial.ColorTasks
+	}
+	if partial.ColorProgressBg != nil {
+		config.ColorProgressBg = *partial.ColorProgressBg
+	}
+	if partial.ColorProgressFg != nil {
+		config.ColorProgressFg = *partial.ColorProgressFg
+	}
+	if partial.ColorHighlightProgressBg != nil {
+		config.ColorHighlightProgressBg = *partial.ColorHighlightProgressBg
+	}
+	if partial.ColorHighlightProgressFg != nil {
+		config.ColorHighlightProgressFg = *partial.ColorHighlightProgressFg
 	}
 	if partial.InteractiveDefault != nil {
 		config.InteractiveDefault = *partial.InteractiveDefault

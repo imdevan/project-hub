@@ -419,3 +419,61 @@ func TestManagerIndexFoldersTOML(t *testing.T) {
 		}
 	})
 }
+
+func TestManagerLoadsColorOverrides(t *testing.T) {
+	root := t.TempDir()
+	cwd := filepath.Join(root, "project")
+	_ = os.MkdirAll(cwd, 0o755)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
+
+	configPath := utils.ConfigPathGlobal()
+	_ = os.MkdirAll(filepath.Dir(configPath), 0o755)
+
+	tomlContent := `
+color_title = "12"
+color_highlight_border = "13"
+color_name = "14"
+color_highlight_name = "15"
+color_tasks = "16"
+color_progress_bg = "17"
+color_progress_fg = "18"
+color_highlight_progress_bg = "19"
+color_highlight_progress_fg = "20"
+`
+	_ = os.WriteFile(configPath, []byte(tomlContent), 0o644)
+
+	manager := NewManager(cwd)
+	cfg, err := manager.Load()
+	if err != nil {
+		t.Fatalf("Load color overrides failed: %v", err)
+	}
+
+	if cfg.ColorTitle != "12" {
+		t.Errorf("expected ColorTitle 12, got %q", cfg.ColorTitle)
+	}
+	if cfg.ColorHighlightBorder != "13" {
+		t.Errorf("expected ColorHighlightBorder 13, got %q", cfg.ColorHighlightBorder)
+	}
+	if cfg.ColorName != "14" {
+		t.Errorf("expected ColorName 14, got %q", cfg.ColorName)
+	}
+	if cfg.ColorHighlightName != "15" {
+		t.Errorf("expected ColorHighlightName 15, got %q", cfg.ColorHighlightName)
+	}
+	if cfg.ColorTasks != "16" {
+		t.Errorf("expected ColorTasks 16, got %q", cfg.ColorTasks)
+	}
+	if cfg.ColorProgressBg != "17" {
+		t.Errorf("expected ColorProgressBg 17, got %q", cfg.ColorProgressBg)
+	}
+	if cfg.ColorProgressFg != "18" {
+		t.Errorf("expected ColorProgressFg 18, got %q", cfg.ColorProgressFg)
+	}
+	if cfg.ColorHighlightProgressBg != "19" {
+		t.Errorf("expected ColorHighlightProgressBg 19, got %q", cfg.ColorHighlightProgressBg)
+	}
+	if cfg.ColorHighlightProgressFg != "20" {
+		t.Errorf("expected ColorHighlightProgressFg 20, got %q", cfg.ColorHighlightProgressFg)
+	}
+}
+

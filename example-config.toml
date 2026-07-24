@@ -47,6 +47,15 @@ flags = "12"
 muted = "08"
 border = "08"
 error = "01"
+color_title = "02"
+color_highlight_border = "02"
+color_name = "07"
+color_highlight_name = "06"
+color_tasks = "06"
+color_progress_bg = "08"
+color_progress_fg = "02"
+color_highlight_progress_bg = "08"
+color_highlight_progress_fg = "06"
 
 # Todo & Project Settings
 ignore_folders = ["node_modules", "dist", "bin", ".git", ".vscode", "vendor", "build", "target"]
