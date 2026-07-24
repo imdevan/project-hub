@@ -102,7 +102,7 @@ func DefaultConfig() Config {
 		InteractiveAlias:     "al",
 
 		// Todo defaults
-		IgnoreFolders: []string{"node_modules", "dist", "bin", ".git", ".vscode", "vendor", "build", "target", "pkg"},
+		IgnoreFolders: []string{"node_modules", "dist", "bin", ".git", ".vscode", "vendor", "build", "target", "pkg", ".venv"},
 		FtsFiles:      []string{"plan/tasks.md", "plan/simple.md", "todo.md", "tasks.md", "PLAN.md"},
 		FtsFeatures:   []string{"## Feature ", "### Feature "},
 		FtsTasks:      []string{"- [ ] ", "* [ ] "},

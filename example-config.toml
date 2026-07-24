@@ -58,7 +58,7 @@ color_highlight_progress_bg = "08"
 color_highlight_progress_fg = "06"
 
 # Todo & Project Settings
-ignore_folders = ["node_modules", "dist", "bin", ".git", ".vscode", "vendor", "build", "target", "pkg"]
+ignore_folders = ["node_modules", "dist", "bin", ".git", ".vscode", "vendor", "build", "target", "pkg", ".venv"]
 exit_with_alias = ""
 show_taskless = false
 fts_files = ["plan/tasks.md", "plan/simple.md", "todo.md", "tasks.md", "PLAN.md"]
