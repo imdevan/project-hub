@@ -87,7 +87,8 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 
 	items := buildListItems(projects, cfg.ShowTaskless, cfg)
 
-	delegate := projectDelegate{theme: theme}
+	barAnim := 0.0
+	delegate := projectDelegate{theme: theme, barAnimProgress: &barAnim}
 
 	listModel := ui.NewListModel(items, delegate, 80, 20, theme)
 	listModel.Title = fmt.Sprintf("%s Projects (%d)", icon.Bookmarks.String(), len(items))
@@ -99,17 +100,18 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 	s.Style = lipgloss.NewStyle().Foreground(theme.Primary)
 
 	model := projectListModel{
-		list:          listModel,
-		theme:         theme,
-		responsive:    ui.NewResponsiveManager(80),
-		config:        cfg,
-		cwd:           cwd,
-		projects:      projects,
-		scanner:       scanner,
-		spinner:       s,
-		indexing:      !usedCache,
-		indexingIndex: 0,
-		activeView:    "list",
+		list:            listModel,
+		theme:           theme,
+		responsive:      ui.NewResponsiveManager(80),
+		config:          cfg,
+		cwd:             cwd,
+		projects:        projects,
+		scanner:         scanner,
+		spinner:         s,
+		indexing:        !usedCache,
+		indexingIndex:   0,
+		activeView:      "list",
+		barAnimProgress: &barAnim,
 	}
 
 	model.list.AdditionalShortHelpKeys = model.getShortHelpKeys
@@ -148,7 +150,8 @@ func (p projectItem) FilterValue() string {
 }
 
 type projectDelegate struct {
-	theme ui.Theme
+	theme           ui.Theme
+	barAnimProgress *float64
 }
 
 func (d projectDelegate) Height() int {
@@ -200,6 +203,10 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 	filled := 0
 	if total > 0 {
 		filled = (completed * barWidth) / total
+	}
+	// Apply animation scaling
+	if d.barAnimProgress != nil && *d.barAnimProgress < 1.0 {
+		filled = int(float64(filled) * *d.barAnimProgress)
 	}
 
 	// Styles
@@ -308,6 +315,14 @@ func delayClearIndexingCmd() tea.Cmd {
 	})
 }
 
+type barAnimTickMsg struct{}
+
+func barAnimTickCmd() tea.Cmd {
+	return tea.Tick(25*time.Millisecond, func(t time.Time) tea.Msg {
+		return barAnimTickMsg{}
+	})
+}
+
 type projectListModel struct {
 	list             list.Model
 	theme            ui.Theme
@@ -324,19 +339,19 @@ type projectListModel struct {
 	indexingComplete bool
 	screenW          int
 	screenH          int
+	barAnimProgress  *float64
+	barAnimDone      bool
 
 	activeView       string // "list" or "project"
 	projectPageModel *projectPageModel
 }
 
 func (m projectListModel) Init() tea.Cmd {
+	cmds := []tea.Cmd{barAnimTickCmd()}
 	if m.indexing && len(m.projects) > 0 {
-		return tea.Batch(
-			m.spinner.Tick,
-			scanProjectCmd(m.scanner, 0, m.projects[0].Path),
-		)
+		cmds = append(cmds, m.spinner.Tick, scanProjectCmd(m.scanner, 0, m.projects[0].Path))
 	}
-	return nil
+	return tea.Batch(cmds...)
 }
 
 func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -396,6 +411,18 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.indexingComplete = false
 		width, height := m.responsive.GetListDimensions(m.screenW, m.screenH)
 		m.list.SetSize(width, height)
+		return m, nil
+
+	case barAnimTickMsg:
+		if !m.barAnimDone && m.barAnimProgress != nil {
+			*m.barAnimProgress += 0.05
+			if *m.barAnimProgress >= 1.0 {
+				*m.barAnimProgress = 1.0
+				m.barAnimDone = true
+				return m, nil
+			}
+			return m, barAnimTickCmd()
+		}
 		return m, nil
 
 	case spinner.TickMsg:
