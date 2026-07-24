@@ -31,7 +31,7 @@ type Config struct {
 	ColorTasks               string `toml:"color_tasks"`
 	ColorProgressBg          string `toml:"color_progress_bg"`
 	ColorProgressFg          string `toml:"color_progress_fg"`
-	ColorHighlightProgressBg  string `toml:"color_highlight_progress_bg"`
+	ColorHighlightProgressBg string `toml:"color_highlight_progress_bg"`
 	ColorHighlightProgressFg string `toml:"color_highlight_progress_fg"`
 	InteractiveDefault       bool   `toml:"interactive_default"`
 	PlainText                bool   `toml:"plain_text"`
@@ -71,36 +71,45 @@ func DefaultConfig() Config {
 	aliasFile := filepath.Join(home, ".aliases", GetAliasFileName(detectedShell))
 
 	return Config{
-		Editor:               "nvim",
-		Headings:             "15",
-		Primary:              "02",
-		Secondary:            "06",
-		Text:                 "07",
-		TextHighlight:        "06",
-		DescriptionHighlight: "05",
-		Tags:                 "13",
-		Flags:                "12",
-		Muted:                "08",
-		Accent:               "13",
-		Border:               "08",
-		Error:                "01",
-		Success:              "02",
-		InteractiveDefault:   false,
-		PlainText:            false,
-		ConfirmDelete:        true,
-		ListSpacing:          "space",
-		AliasFile:            aliasFile,
-		Shell:                detectedShell,
-		IndexFolders:         []string{},
-		CacheInterval:        300,
-		ScriptIcons:          map[string]string{},
-		AutoAliasSeparator:     "",
-		AutoAliasLowercase:     true,
-		DefaultAliasPartLength: 1, // Take 1 character from each part by default
-		HomeIcon:               "~",
-		DefaultSortBy:        "newest",
-		FunctionAlias:        "true",
-		InteractiveAlias:     "al",
+		Editor:                   "nvim",
+		Headings:                 "15",
+		Primary:                  "02",
+		Secondary:                "06",
+		Text:                     "07",
+		TextHighlight:            "06",
+		DescriptionHighlight:     "05",
+		Tags:                     "13",
+		Flags:                    "12",
+		Muted:                    "08",
+		Accent:                   "13",
+		Border:                   "08",
+		Error:                    "01",
+		Success:                  "02",
+		ColorTitle:               "15",
+		ColorHighlightBorder:     "02",
+		ColorName:                "07",
+		ColorHighlightName:       "10",
+		ColorTasks:               "13",
+		ColorProgressBg:          "08",
+		ColorProgressFg:          "02",
+		ColorHighlightProgressBg: "08",
+		ColorHighlightProgressFg: "10",
+		InteractiveDefault:       false,
+		PlainText:                false,
+		ConfirmDelete:            true,
+		ListSpacing:              "space",
+		AliasFile:                aliasFile,
+		Shell:                    detectedShell,
+		IndexFolders:             []string{},
+		CacheInterval:            300,
+		ScriptIcons:              map[string]string{},
+		AutoAliasSeparator:       "",
+		AutoAliasLowercase:       true,
+		DefaultAliasPartLength:   1, // Take 1 character from each part by default
+		HomeIcon:                 "~",
+		DefaultSortBy:            "newest",
+		FunctionAlias:            "true",
+		InteractiveAlias:         "al",
 
 		// Todo defaults
 		IgnoreFolders: []string{"node_modules", "dist", "bin", ".git", ".vscode", "vendor", "build", "target", "pkg", ".venv"},
