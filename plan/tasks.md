@@ -43,24 +43,36 @@ This project is a fork of another project made for managing aliases. The project
   - [x] 3.1.2 show current project statuses 
   - [x] 3.1.3 show loading index progress on bottom of tui while indexing in the background
 
-## Feature 4: Task & Feature (FTS) Parsing
-  - [x] 4.1 Implement Markdown task parser for FTS files
+## Feature 4: add sync_interval to config
+- [ ] 4.1 add sync_interval to config
+- only index after interval. time in seconds or time of day. 
+- default to 1 minute?
+- is there a way to do it on change? or on hover?
+
+## Feature 5: break down each ui element give it's own color in config
+- title, highlight_border, name, highlight_name, tasks, progress_bg, progress_fg, highlight_progress_bg_highlight_proress_fg. 
+- default to current colors
+
+
+
+## Feature 6: Task & Feature (FTS) Parsing
+  - [x] 6.1 Implement Markdown task parser for FTS files
     - notes: Parse markdown planning files matching the FTS definitions.
-    - [x] 4.1.1 Scan project folders for task files based on configure patterns
-    - [x] 4.1.2 Parse Features, Tasks, and Subtasks based on markdown headers and checkbox patterns
-    - [x] 4.1.3 Calculate completion percentage based on task and subtask status (checked vs unchecked)
+    - [x] 6.1.1 Scan project folders for task files based on configure patterns
+    - [x] 6.1.2 Parse Features, Tasks, and Subtasks based on markdown headers and checkbox patterns
+    - [x] 6.1.3 Calculate completion percentage based on task and subtask status (checked vs unchecked)
 
-## Feature 5: Interactive TUI
-  - [x] 5.1 Design and build the projects list TUI
+## Feature 7: Interactive TUI
+  - [x] 7.1 Design and build the projects list TUI
     - notes: Use Bubble Tea/Bubbles to build the TUI inline.
-    - [x] 5.1.1 Create list view of discovered projects
-    - [x] 5.1.2 Display progress bar and completion ratio (complete / total) for each project
-    - [x] 5.1.3 Display total count of source code TODO items
-    - [x] 5.1.4 Style the active project list item with an ANSI border
+    - [x] 7.1.1 Create list view of discovered projects
+    - [x] 7.1.2 Display progress bar and completion ratio (complete / total) for each project
+    - [x] 7.1.3 Display total count of source code TODO items
+    - [x] 7.1.4 Style the active project list item with an ANSI border
 
-## Feature 6: Configuration Updates
-  - [x] 6.1 Update configuration model and default TOML
+## Feature 8: Configuration Updates
+  - [x] 8.1 Update configuration model and default TOML
     - notes: Add configuration fields supporting the new indexer and parser.
-    - [x] 6.1.1 Add ignore_folders property to the config structure
-    - [x] 6.1.2 Add fts tokens and definitions to the config to identify task files
-    - [x] 6.1.3 Update example-config.toml and documentation
+    - [x] 8.1.1 Add ignore_folders property to the config structure
+    - [x] 8.1.2 Add fts tokens and definitions to the config to identify task files
+    - [x] 8.1.3 Update example-config.toml and documentation
