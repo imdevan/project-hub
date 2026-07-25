@@ -42,7 +42,7 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 	}
 
 	store, err := index.NewStore()
-	var pinnedMap map[string]bool
+	var pinnedMap map[string]int
 	if err == nil {
 		defer store.Close()
 		pinnedMap, _ = store.GetPinnedProjects()
@@ -56,7 +56,9 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 		if cacheErr == nil && len(cached) > 0 && time.Since(scannedAt) < time.Duration(cfg.SyncInterval)*time.Second {
 			// Restore pinned state from DB (cache may be stale on pins)
 			for i := range cached {
-				cached[i].Pinned = pinnedMap[cached[i].Path]
+				order, pinned := pinnedMap[cached[i].Path]
+				cached[i].Pinned = pinned
+				cached[i].PinOrder = order
 			}
 			projects = cached
 			usedCache = true
@@ -66,24 +68,18 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 	if !usedCache {
 		projects = make([]Project, len(dirs))
 		for i, dir := range dirs {
+			order, pinned := pinnedMap[dir]
 			proj := Project{
-				Name:   filepath.Base(dir),
-				Path:   dir,
-				Pinned: pinnedMap[dir],
+				Name:     filepath.Base(dir),
+				Path:     dir,
+				Pinned:   pinned,
+				PinOrder: order,
 			}
 			projects[i] = proj
 		}
 	}
 
-	sort.SliceStable(projects, func(i, j int) bool {
-		if projects[i].Pinned && !projects[j].Pinned {
-			return true
-		}
-		if !projects[i].Pinned && projects[j].Pinned {
-			return false
-		}
-		return strings.ToLower(projects[i].Name) < strings.ToLower(projects[j].Name)
-	})
+	sortProjects(projects)
 
 	items := buildListItems(projects, cfg.ShowTaskless, cfg)
 
@@ -374,18 +370,12 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case scanProjectResultMsg:
 		if msg.err == nil {
 			pinned := m.projects[msg.index].Pinned
+			pinOrder := m.projects[msg.index].PinOrder
 			m.projects[msg.index] = msg.proj
 			m.projects[msg.index].Pinned = pinned
+			m.projects[msg.index].PinOrder = pinOrder
 
-			sort.SliceStable(m.projects, func(i, j int) bool {
-				if m.projects[i].Pinned && !m.projects[j].Pinned {
-					return true
-				}
-				if !m.projects[i].Pinned && m.projects[j].Pinned {
-					return false
-				}
-				return strings.ToLower(m.projects[i].Name) < strings.ToLower(m.projects[j].Name)
-			})
+			sortProjects(m.projects)
 
 			items := buildListItems(m.projects, m.config.ShowTaskless, m.config)
 			m.list.SetItems(items)
@@ -462,36 +452,34 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "p":
 			if item, ok := m.list.SelectedItem().(projectItem); ok {
+				targetPath := item.Project.Path
 				store, err := index.NewStore()
 				if err == nil {
 					defer store.Close()
 					if item.Project.Pinned {
-						_ = store.UnpinProject(item.Project.Path)
+						_ = store.UnpinProject(targetPath)
 					} else {
-						_ = store.PinProject(item.Project.Path)
+						_ = store.PinProject(targetPath)
 					}
-				}
-
-				targetPath := item.Project.Path
-				for i := range m.projects {
-					if m.projects[i].Path == targetPath {
-						m.projects[i].Pinned = !m.projects[i].Pinned
-						break
+					pinnedMap, _ := store.GetPinnedProjects()
+					for i := range m.projects {
+						order, pinned := pinnedMap[m.projects[i].Path]
+						m.projects[i].Pinned = pinned
+						m.projects[i].PinOrder = order
+					}
+				} else {
+					for i := range m.projects {
+						if m.projects[i].Path == targetPath {
+							m.projects[i].Pinned = !m.projects[i].Pinned
+							break
+						}
 					}
 				}
 
 				// Reset list filter to exit the filtering view
 				m.list.ResetFilter()
 
-				sort.SliceStable(m.projects, func(i, j int) bool {
-					if m.projects[i].Pinned && !m.projects[j].Pinned {
-						return true
-					}
-					if !m.projects[i].Pinned && m.projects[j].Pinned {
-						return false
-					}
-					return strings.ToLower(m.projects[i].Name) < strings.ToLower(m.projects[j].Name)
-				})
+				sortProjects(m.projects)
 
 				items := buildListItems(m.projects, m.config.ShowTaskless, m.config)
 				m.list.SetItems(items)
@@ -664,6 +652,21 @@ func (m projectListModel) allHelpKeys() []key.Binding {
 
 func (m projectListModel) getShortHelpKeys() []key.Binding {
 	return m.allHelpKeys()
+}
+
+func sortProjects(projects []Project) {
+	sort.SliceStable(projects, func(i, j int) bool {
+		if projects[i].Pinned && projects[j].Pinned {
+			return projects[i].PinOrder < projects[j].PinOrder
+		}
+		if projects[i].Pinned && !projects[j].Pinned {
+			return true
+		}
+		if !projects[i].Pinned && projects[j].Pinned {
+			return false
+		}
+		return strings.ToLower(projects[i].Name) < strings.ToLower(projects[j].Name)
+	})
 }
 
 func quoteShellArg(s string) string {

@@ -505,8 +505,24 @@ func TestStore_ProjectPinning(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetPinnedProjects error: %v", err)
 	}
-	if !all["/path/to/project"] {
+	if all["/path/to/project"] == 0 {
 		t.Error("expected path to be in pinned projects map")
+	}
+
+	if err := s.PinProject("/path/to/project1"); err != nil {
+		t.Fatalf("PinProject error: %v", err)
+	}
+	if err := s.PinProject("/path/to/project2"); err != nil {
+		t.Fatalf("PinProject error: %v", err)
+	}
+
+	all, err = s.GetPinnedProjects()
+	if err != nil {
+		t.Fatalf("GetPinnedProjects error: %v", err)
+	}
+	// Most recently pinned project (/path/to/project2) should have order 1
+	if all["/path/to/project2"] >= all["/path/to/project1"] {
+		t.Errorf("expected project2 rank (%d) to be lower (higher priority) than project1 rank (%d)", all["/path/to/project2"], all["/path/to/project1"])
 	}
 
 	if err := s.UnpinProject("/path/to/project"); err != nil {

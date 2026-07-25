@@ -97,12 +97,17 @@ func (s *Store) migrate() error {
 		);
 
 		CREATE TABLE IF NOT EXISTS pinned_projects (
-			path       TEXT    PRIMARY KEY
+			path       TEXT PRIMARY KEY,
+			pinned_at  TEXT NOT NULL DEFAULT ''
 		);
 	`)
 	if err != nil {
 		return fmt.Errorf("index: migrate: %w", err)
 	}
+
+	// Ensure pinned_at column exists for existing DBs
+	_, _ = s.db.Exec("ALTER TABLE pinned_projects ADD COLUMN pinned_at TEXT NOT NULL DEFAULT ''")
+
 	return nil
 }
 
@@ -145,9 +150,10 @@ func (s *Store) LoadProjectsCache() ([]domain.Project, time.Time, error) {
 	return projects, t, nil
 }
 
-// PinProject records a project path as pinned.
+// PinProject records a project path as pinned with current timestamp.
 func (s *Store) PinProject(path string) error {
-	_, err := s.db.Exec("INSERT OR IGNORE INTO pinned_projects (path) VALUES (?)", path)
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	_, err := s.db.Exec("INSERT INTO pinned_projects (path, pinned_at) VALUES (?, ?) ON CONFLICT(path) DO UPDATE SET pinned_at = excluded.pinned_at", path, now)
 	if err != nil {
 		return fmt.Errorf("index: pin project: %w", err)
 	}
@@ -173,19 +179,21 @@ func (s *Store) IsProjectPinned(path string) (bool, error) {
 	return count > 0, nil
 }
 
-// GetPinnedProjects returns a set of all pinned project paths.
-func (s *Store) GetPinnedProjects() (map[string]bool, error) {
-	rows, err := s.db.Query("SELECT path FROM pinned_projects")
+// GetPinnedProjects returns a map of project path to pin order (1-indexed based on pinned_at timestamp, most recent first).
+func (s *Store) GetPinnedProjects() (map[string]int, error) {
+	rows, err := s.db.Query("SELECT path FROM pinned_projects ORDER BY rowid DESC")
 	if err != nil {
 		return nil, fmt.Errorf("index: get pinned projects: %w", err)
 	}
 	defer rows.Close()
 
-	pinned := make(map[string]bool)
+	pinned := make(map[string]int)
+	order := 1
 	for rows.Next() {
 		var path string
 		if err := rows.Scan(&path); err == nil {
-			pinned[path] = true
+			pinned[path] = order
+			order++
 		}
 	}
 	return pinned, nil

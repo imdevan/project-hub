@@ -36,6 +36,7 @@ type Project struct {
 	Todos          []TodoComment
 	FtsFiles       []FtsFileDetail
 	Pinned         bool
+	PinOrder       int
 }
 
 // Progress returns the completion percentage of tasks, or 0 if no tasks exist.
