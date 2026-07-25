@@ -128,7 +128,6 @@ example
   - [x] 11.3.4 enter on TODO comment opens that todo at the correct line number, enter on task file opens that task file
 - [x] 11.4 show separate tabs on Project page (TODOs tab and Tasks tab) with separate scrolling, selection state, and pagination
 
-
 ## Feature 12: pin a project
 - [x] 12.1 in project list view, hotkey 'p' will pin a project
   - [x] 12.1.1 pinned projects appear at the top of the project lists
@@ -137,3 +136,26 @@ example
   - [x] 12.1.4 store pinned state in db
 
 
+## Feature 13: rainbow
+- [x] 13.1 add rainbow to config 
+  - [x] 13.1.1 defaults to false
+  - [x] 13.1.2 if true or an array present projects in a rainbow cascading color that loops based on length of array
+  - [x] 13.1.3 default rainbow value is an array of colors (DefaultRainbowAnchors)
+
+// defaultRainbowAnchors is the keyframe sequence for the default rainbow.
+var defaultRainbowAnchors = []lipgloss.Color{
+	"#a6da95", // Green
+	"#8bd5ca", // Teal
+	"#91d7e3", // Sky
+	"#7dc4e4", // Sapphire
+	"#8aadf4", // Blue
+	"#b7bdf8", // Lavender
+	"#c6a0f6", // Mauve
+	"#f5bde6", // Pink
+	"#f0c6c6", // Flamingo
+	"#f4dbd6", // Rosewater
+	"#eed49f", // Yellow
+	"#f5a97f", // Peach
+	"#ee99a0", // Maroon
+	"#ed8796", // Red
+}

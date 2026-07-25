@@ -212,22 +212,45 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 	todoStyle := lipgloss.NewStyle().Foreground(d.theme.Error)
 	pathStyle := lipgloss.NewStyle().Foreground(d.theme.Muted)
 
+	rainbowColors := ui.GetRainbowColors(proj.Config.Rainbow)
+	useRainbow := len(rainbowColors) > 0
+
 	if isSelected {
-		titleStyle = titleStyle.Foreground(d.theme.ColorHighlightName)
+		if useRainbow {
+			c := rainbowColors[index%len(rainbowColors)]
+			titleStyle = titleStyle.Foreground(c)
+			fgStyle := lipgloss.NewStyle().Foreground(c)
+			bgStyle := lipgloss.NewStyle().Foreground(d.theme.ColorHighlightProgressBg)
+			filledPart := fgStyle.Render(strings.Repeat("█", filled))
+			emptyPart := bgStyle.Render(strings.Repeat("░", barWidth-filled))
+			barStr = filledPart + emptyPart
+		} else {
+			titleStyle = titleStyle.Foreground(d.theme.ColorHighlightName)
 
-		fgStyle := lipgloss.NewStyle().Foreground(d.theme.ColorHighlightProgressFg)
-		bgStyle := lipgloss.NewStyle().Foreground(d.theme.ColorHighlightProgressBg)
-		filledPart := fgStyle.Render(strings.Repeat("█", filled))
-		emptyPart := bgStyle.Render(strings.Repeat("░", barWidth-filled))
-		barStr = filledPart + emptyPart
+			fgStyle := lipgloss.NewStyle().Foreground(d.theme.ColorHighlightProgressFg)
+			bgStyle := lipgloss.NewStyle().Foreground(d.theme.ColorHighlightProgressBg)
+			filledPart := fgStyle.Render(strings.Repeat("█", filled))
+			emptyPart := bgStyle.Render(strings.Repeat("░", barWidth-filled))
+			barStr = filledPart + emptyPart
+		}
 	} else {
-		titleStyle = titleStyle.Foreground(d.theme.ColorName)
+		if useRainbow {
+			c := rainbowColors[index%len(rainbowColors)]
+			titleStyle = titleStyle.Foreground(c)
+			fgStyle := lipgloss.NewStyle().Foreground(c)
+			bgStyle := lipgloss.NewStyle().Foreground(d.theme.ColorProgressBg)
+			filledPart := fgStyle.Render(strings.Repeat("█", filled))
+			emptyPart := bgStyle.Render(strings.Repeat("░", barWidth-filled))
+			barStr = filledPart + emptyPart
+		} else {
+			titleStyle = titleStyle.Foreground(d.theme.ColorName)
 
-		fgStyle := lipgloss.NewStyle().Foreground(d.theme.ColorProgressFg)
-		bgStyle := lipgloss.NewStyle().Foreground(d.theme.ColorProgressBg)
-		filledPart := fgStyle.Render(strings.Repeat("█", filled))
-		emptyPart := bgStyle.Render(strings.Repeat("░", barWidth-filled))
-		barStr = filledPart + emptyPart
+			fgStyle := lipgloss.NewStyle().Foreground(d.theme.ColorProgressFg)
+			bgStyle := lipgloss.NewStyle().Foreground(d.theme.ColorProgressBg)
+			filledPart := fgStyle.Render(strings.Repeat("█", filled))
+			emptyPart := bgStyle.Render(strings.Repeat("░", barWidth-filled))
+			barStr = filledPart + emptyPart
+		}
 	}
 
 	statsStr := statsStyle.Render(fmt.Sprintf("(%d/%d) tasks complete", completed, total))
@@ -253,9 +276,13 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 
 	var rendered string
 	if isSelected {
+		borderCol := d.theme.ColorHighlightBorder
+		if useRainbow {
+			borderCol = rainbowColors[index%len(rainbowColors)]
+		}
 		rendered = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(d.theme.ColorHighlightBorder).
+			BorderForeground(borderCol).
 			Padding(0, 1).
 			Width(targetTotalWidth).
 			Render(content)

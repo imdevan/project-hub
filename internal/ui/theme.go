@@ -69,6 +69,44 @@ func ThemeFromConfig(cfg domain.Config) Theme {
 	}
 }
 
+// GetRainbowColors returns resolved lipgloss colors based on config.Rainbow, or empty slice if disabled.
+func GetRainbowColors(rainbow interface{}) []lipgloss.Color {
+	if rainbow == nil {
+		return nil
+	}
+
+	var colorStrings []string
+	switch v := rainbow.(type) {
+	case bool:
+		if !v {
+			return nil
+		}
+		colorStrings = domain.DefaultRainbowAnchors
+	case []string:
+		if len(v) == 0 {
+			return nil
+		}
+		colorStrings = v
+	case []interface{}:
+		for _, item := range v {
+			if str, ok := item.(string); ok {
+				colorStrings = append(colorStrings, str)
+			}
+		}
+		if len(colorStrings) == 0 {
+			return nil
+		}
+	default:
+		return nil
+	}
+
+	res := make([]lipgloss.Color, len(colorStrings))
+	for i, c := range colorStrings {
+		res[i] = lipgloss.Color(c)
+	}
+	return res
+}
+
 func resolveColor(value, fallback string) lipgloss.Color {
 	trimmed := strings.TrimSpace(value)
 	if trimmed == "" {

@@ -56,6 +56,7 @@ color_progress_bg = "08"
 color_progress_fg = "02"
 color_highlight_progress_bg = "08"
 color_highlight_progress_fg = "06"
+rainbow = false # Enable rainbow colors for projects (boolean true/false or array of color hex codes)
 
 # Todo & Project Settings
 ignore_folders = ["node_modules", "dist", "bin", ".git", ".vscode", "vendor", "build", "target", "pkg", ".venv"]

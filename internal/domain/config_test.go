@@ -92,6 +92,18 @@ func TestDefaultConfig(t *testing.T) {
 			t.Errorf("DefaultConfig().ListSpacing = %q, want %q", cfg.ListSpacing, "space")
 		}
 	})
+
+	t.Run("has rainbow default false", func(t *testing.T) {
+		if rainbowBool, ok := cfg.Rainbow.(bool); !ok || rainbowBool {
+			t.Errorf("DefaultConfig().Rainbow = %v, want false", cfg.Rainbow)
+		}
+	})
+
+	t.Run("has default rainbow anchors defined", func(t *testing.T) {
+		if len(DefaultRainbowAnchors) != 14 {
+			t.Errorf("len(DefaultRainbowAnchors) = %d, want 14", len(DefaultRainbowAnchors))
+		}
+	})
 }
 
 func TestDefaultConfig_Consistency(t *testing.T) {

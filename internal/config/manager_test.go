@@ -485,3 +485,48 @@ exit_with_alias = "cd {{.Project}}"
 	}
 }
 
+func TestManagerRainbowTOML(t *testing.T) {
+	t.Run("boolean rainbow", func(t *testing.T) {
+		root := t.TempDir()
+		cwd := filepath.Join(root, "project")
+		_ = os.MkdirAll(cwd, 0o755)
+		t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
+
+		configPath := utils.ConfigPathGlobal()
+		_ = os.MkdirAll(filepath.Dir(configPath), 0o755)
+
+		_ = os.WriteFile(configPath, []byte("rainbow = true\n"), 0o644)
+
+		manager := NewManager(cwd)
+		cfg, err := manager.Load()
+		if err != nil {
+			t.Fatalf("Load rainbow bool failed: %v", err)
+		}
+		if rb, ok := cfg.Rainbow.(bool); !ok || !rb {
+			t.Errorf("expected Rainbow true, got %v", cfg.Rainbow)
+		}
+	})
+
+	t.Run("array rainbow", func(t *testing.T) {
+		root := t.TempDir()
+		cwd := filepath.Join(root, "project")
+		_ = os.MkdirAll(cwd, 0o755)
+		t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
+
+		configPath := utils.ConfigPathGlobal()
+		_ = os.MkdirAll(filepath.Dir(configPath), 0o755)
+
+		_ = os.WriteFile(configPath, []byte("rainbow = [\"#ff0000\", \"#00ff00\", \"#0000ff\"]\n"), 0o644)
+
+		manager := NewManager(cwd)
+		cfg, err := manager.Load()
+		if err != nil {
+			t.Fatalf("Load rainbow array failed: %v", err)
+		}
+		colors, ok := cfg.Rainbow.([]string)
+		if !ok || len(colors) != 3 || colors[0] != "#ff0000" {
+			t.Errorf("expected Rainbow array, got %v", cfg.Rainbow)
+		}
+	})
+}
+

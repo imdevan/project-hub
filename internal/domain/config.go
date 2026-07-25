@@ -62,6 +62,27 @@ type Config struct {
 	ExitWithAlias string   `toml:"exit_with_alias"`
 	ShowTaskless  bool     `toml:"show_taskless"`
 	SyncInterval  int      `toml:"sync_interval"`
+
+	// Rainbow settings
+	Rainbow interface{} `toml:"rainbow"`
+}
+
+// DefaultRainbowAnchors is the keyframe sequence for the default rainbow.
+var DefaultRainbowAnchors = []string{
+	"#a6da95", // Green
+	"#8bd5ca", // Teal
+	"#91d7e3", // Sky
+	"#7dc4e4", // Sapphire
+	"#8aadf4", // Blue
+	"#b7bdf8", // Lavender
+	"#c6a0f6", // Mauve
+	"#f5bde6", // Pink
+	"#f0c6c6", // Flamingo
+	"#f4dbd6", // Rosewater
+	"#eed49f", // Yellow
+	"#f5a97f", // Peach
+	"#ee99a0", // Maroon
+	"#ed8796", // Red
 }
 
 // DefaultConfig returns the default configuration values.
@@ -121,6 +142,7 @@ func DefaultConfig() Config {
 		ExitWithAlias: "",
 		ShowTaskless:  false,
 		SyncInterval:  3600,
+		Rainbow:       false,
 	}
 }
 
