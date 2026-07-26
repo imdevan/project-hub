@@ -49,6 +49,7 @@ func (s *Scanner) ScanRecurringProjects() []Project {
 	}{
 		{"daily.md", "daily", "Daily Tasks"},
 		{"weekly.md", "weekly", "Weekly Tasks"},
+		{"todo.md", "todo", "TODO"},
 	}
 
 	for _, f := range files {
@@ -58,8 +59,10 @@ func (s *Scanner) ScanRecurringProjects() []Project {
 			continue
 		}
 
-		// Check and reset task checkboxes if interval has passed
-		_ = CheckAndResetRecurringTasks(filePath, f.recType, s.config)
+		// Check and reset task checkboxes if interval has passed (only for daily/weekly)
+		if f.recType != "todo" {
+			_ = CheckAndResetRecurringTasks(filePath, f.recType, s.config)
+		}
 
 		data, err := os.ReadFile(filePath)
 		if err != nil {

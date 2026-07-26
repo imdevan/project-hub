@@ -168,6 +168,8 @@ var defaultRainbowAnchors = []lipgloss.Color{
 - [x] 14.5 Implement interval task resets for `daily.md` and `weekly.md` according to `daily_reset` (default `04:20`) and `weekly_reset` (default `monday`).
 
 
+## Feature 15: todos
+- [x] 15.1 add `~/.config/super-todo/todo.md` same as recurring projects, but does not clear
 
 
 

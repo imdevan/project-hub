@@ -680,13 +680,19 @@ func (m projectListModel) getShortHelpKeys() []key.Binding {
 
 func sortProjects(projects []Project) {
 	sort.SliceStable(projects, func(i, j int) bool {
-		// 1. Recurring projects come first (daily before weekly if both)
+		// 1. Recurring projects come first (daily -> weekly -> todo)
 		if projects[i].IsRecurring && projects[j].IsRecurring {
-			if projects[i].RecurringType == "daily" && projects[j].RecurringType != "daily" {
-				return true
+			orderMap := map[string]int{"daily": 1, "weekly": 2, "todo": 3}
+			o1 := orderMap[projects[i].RecurringType]
+			o2 := orderMap[projects[j].RecurringType]
+			if o1 == 0 {
+				o1 = 99
 			}
-			if projects[i].RecurringType != "daily" && projects[j].RecurringType == "daily" {
-				return false
+			if o2 == 0 {
+				o2 = 99
+			}
+			if o1 != o2 {
+				return o1 < o2
 			}
 			return strings.ToLower(projects[i].Name) < strings.ToLower(projects[j].Name)
 		}
