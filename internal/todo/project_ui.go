@@ -221,7 +221,10 @@ func (m projectPageModel) View() string {
 		spaces = 2
 	}
 	
-	nameLine := nameStr + strings.Repeat(" ", spaces) + locationStr
+	nameLine := nameStr
+	if !m.project.IsRecurring {
+		nameLine = nameStr + strings.Repeat(" ", spaces) + locationStr
+	}
 	sections = append(sections, nameLine)
 
 	// Progress bar
@@ -245,7 +248,10 @@ func (m projectPageModel) View() string {
 	sections = append(sections, barStr)
 
 	statsStyle := lipgloss.NewStyle().Foreground(m.theme.ColorTasks)
-	statsLine := fmt.Sprintf("(%d/%d) tasks complete   %d todos", completed, total, m.project.TodoCount)
+	statsLine := fmt.Sprintf("(%d/%d) tasks complete", completed, total)
+	if !m.project.IsRecurring {
+		statsLine = fmt.Sprintf("(%d/%d) tasks complete   %d todos", completed, total, m.project.TodoCount)
+	}
 	sections = append(sections, statsStyle.Render(statsLine))
 
 	sections = append(sections, "") // blank line separator

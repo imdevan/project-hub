@@ -205,6 +205,9 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 
 	// Render progress bar (full width of the content area)
 	barWidth := contentWidth
+	if barWidth > targetTotalWidth-4 {
+		barWidth = targetTotalWidth - 4
+	}
 	filled := 0
 	if total > 0 {
 		filled = (completed * barWidth) / total
@@ -264,34 +267,39 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 
 	statsText := fmt.Sprintf("(%d/%d) tasks complete", completed, total)
 	todoText := fmt.Sprintf("%d todos", todoCount)
-	leftPart := fmt.Sprintf("%s  %s", statsStyle.Render(statsText), todoStyle.Render(todoText))
-	leftWidth := lipgloss.Width(leftPart)
 
 	var metadataLine string
-	// Room available for path to the right
-	pathMaxLen := contentWidth - leftWidth - 2
-	if pathMaxLen >= 10 {
-		truncatedPath := truncatePath(proj.Project.Path, pathMaxLen)
-		renderedPath := pathStyle.Render(truncatedPath)
-		pathWidth := lipgloss.Width(renderedPath)
-		spaces := contentWidth - leftWidth - pathWidth
-		if spaces < 2 {
-			spaces = 2
-		}
-		metadataLine = leftPart + strings.Repeat(" ", spaces) + renderedPath
-	} else if contentWidth-lipgloss.Width(statsStyle.Render(statsText))-2 >= 10 {
-		leftPartShort := statsStyle.Render(statsText)
-		leftWShort := lipgloss.Width(leftPartShort)
-		truncatedPath := truncatePath(proj.Project.Path, contentWidth-leftWShort-2)
-		renderedPath := pathStyle.Render(truncatedPath)
-		pathWidth := lipgloss.Width(renderedPath)
-		spaces := contentWidth - leftWShort - pathWidth
-		if spaces < 2 {
-			spaces = 2
-		}
-		metadataLine = leftPartShort + strings.Repeat(" ", spaces) + renderedPath
+	if proj.Project.IsRecurring {
+		metadataLine = statsStyle.Render(statsText)
 	} else {
-		metadataLine = leftPart
+		leftPart := fmt.Sprintf("%s  %s", statsStyle.Render(statsText), todoStyle.Render(todoText))
+		leftWidth := lipgloss.Width(leftPart)
+
+		// Room available for path to the right
+		pathMaxLen := contentWidth - leftWidth - 2
+		if pathMaxLen >= 10 {
+			truncatedPath := truncatePath(proj.Project.Path, pathMaxLen)
+			renderedPath := pathStyle.Render(truncatedPath)
+			pathWidth := lipgloss.Width(renderedPath)
+			spaces := contentWidth - leftWidth - pathWidth
+			if spaces < 2 {
+				spaces = 2
+			}
+			metadataLine = leftPart + strings.Repeat(" ", spaces) + renderedPath
+		} else if contentWidth-lipgloss.Width(statsStyle.Render(statsText))-2 >= 10 {
+			leftPartShort := statsStyle.Render(statsText)
+			leftWShort := lipgloss.Width(leftPartShort)
+			truncatedPath := truncatePath(proj.Project.Path, contentWidth-leftWShort-2)
+			renderedPath := pathStyle.Render(truncatedPath)
+			pathWidth := lipgloss.Width(renderedPath)
+			spaces := contentWidth - leftWShort - pathWidth
+			if spaces < 2 {
+				spaces = 2
+			}
+			metadataLine = leftPartShort + strings.Repeat(" ", spaces) + renderedPath
+		} else {
+			metadataLine = leftPart
+		}
 	}
 
 	content := titleStyle.Render(title) + "\n" + barStr + "\n" + metadataLine
@@ -320,13 +328,20 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 }
 
 func truncateString(s string, maxLen int) string {
-	if len(s) <= maxLen {
+	if lipgloss.Width(s) <= maxLen {
 		return s
 	}
 	if maxLen <= 3 {
 		return "..."
 	}
-	return s[:maxLen-3] + "..."
+	runes := []rune(s)
+	for i := len(runes); i > 0; i-- {
+		candidate := string(runes[:i]) + "..."
+		if lipgloss.Width(candidate) <= maxLen {
+			return candidate
+		}
+	}
+	return "..."
 }
 
 func truncatePath(path string, maxLen int) string {
