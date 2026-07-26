@@ -161,10 +161,35 @@ var defaultRainbowAnchors = []lipgloss.Color{
 }
 
 ## Feature 14: recurring todo projects
-
-~/.config/super-todo/daily.md
-~/.config/super-todo/weekly.md
+super-todo
+~/.config/super-todo/
+  daily.md
+  weekly.md
 
 tasks in daily and weekly are presented above all other tasks including pinned
 
 these are special task files that are always indexed if present. 
+
+the view for these projects are different than the others. 
+
+top bar should show progress as usual. 
+
+no task / todo tabs. 
+
+show tasks as a list. 
+
+tasks checkboxes are toggleable via the cli super-todo
+via space hotkey
+
+tasks reset at interval. 
+
+### config
+daily_reset = default: 04:20
+weekly_reset = monday at daily_reset time
+
+
+
+
+
+
+
