@@ -1,13 +1,11 @@
 package todo
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
-	"text/template"
 	"time"
 
 	"sort"
@@ -572,41 +570,16 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "o":
 			if item, ok := m.list.SelectedItem().(projectItem); ok {
-				// Find FTS file or fallback to project directory
-				relPath := "."
 				targetPath := item.Project.Path
 				for _, ftsFile := range m.config.FtsFiles {
 					testPath := filepath.Join(item.Project.Path, ftsFile)
 					if _, err := os.Stat(testPath); err == nil {
-						relPath = ftsFile
 						targetPath = testPath
 						break
 					}
 				}
 
-				if m.config.ExitWithAlias != "" {
-					tmpl, err := template.New("exit_with_alias").Funcs(template.FuncMap{
-						"quote": quoteShellArg,
-					}).Parse(m.config.ExitWithAlias)
-					if err != nil {
-						m.message = fmt.Sprintf("✗ template error: %s", err)
-						return m, nil
-					}
 
-					var buf bytes.Buffer
-					data := map[string]string{
-						"Project":     quoteShellArg(item.Project.Path),
-						"ProjectPath": quoteShellArg(item.Project.Path),
-						"TaskFile":    quoteShellArg(relPath),
-					}
-					if err := tmpl.Execute(&buf, data); err != nil {
-						m.message = fmt.Sprintf("✗ template execution error: %s", err)
-						return m, nil
-					}
-
-					m.selectedCmd = buf.String()
-					return m, tea.Quit
-				}
 
 				editorAdapter := editor.New(m.config.Editor)
 				c, err := editorAdapter.BuildCmd(targetPath, 1)

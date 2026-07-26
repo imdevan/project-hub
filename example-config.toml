@@ -3,30 +3,13 @@ editor = "nvim"
 
 # CLI behavior
 interactive_default = false
-confirm_delete = true  # Prompt for confirmation before deleting an alias
+confirm_delete = true
 
-# Alias settings
-alias_file = "~/.aliases/aliases.zsh"  # File where aliases are stored (extension based on shell)
+# System settings
 shell = "zsh"                          # Options: bash, zsh, fish, nu (auto-detected if not specified)
-index_folders = []                     # Glob patterns to scan for additional alias files (e.g. ["~/dotfiles/*.zsh"])
+index_folders = []
 cache_interval = 300
 script_icons = {}
-
-# Auto-alias generation
-auto_alias_separator = ""   # Character between first letters (empty = "mcp", "-" = "m-c-p")
-auto_alias_lowercase = true
-default_alias_part_length = 1  # Number of characters to take from each part
-
-# Function alias wrapper
-# When enabled, adds a shell function that auto-sources aliases after running alias commands
-# Options: "true" (use default name "aliases"), "custom_name" (use custom function name), "false" (disabled)
-function_alias = "true"
-
-# Interactive alias wrapper
-# When enabled, adds a shell function for interactive alias navigation (aliases -i)
-# The function displays the TUI and executes the selected alias command
-# Options: "al" (default), "custom_name" (use custom function name), "false" (disabled)
-interactive_alias = "al"
 
 # Display
 home_icon = "~"  # Icon to represent home directory in list view
@@ -60,7 +43,6 @@ rainbow = false # Enable rainbow colors for projects (boolean true/false or arra
 
 # Todo & Project Settings
 ignore_folders = ["node_modules", "dist", "bin", ".git", ".vscode", "vendor", "build", "target", "pkg", ".venv"]
-exit_with_alias = ""
 show_taskless = false
 fts_files = ["plan/tasks.md", "plan/simple.md", "todo.md", "tasks.md", "PLAN.md"]
 fts_features = ["## Feature ", "### Feature "]
@@ -68,4 +50,3 @@ fts_tasks = ["- [ ] ", "* [ ] "]
 fts_subtasks = ["- [ ] ", "* [ ] "]
 todo_tokens = ["TODO", "FIXME"]
 sync_interval = 3600  # Seconds between project scans. Set to 0 to always rescan. Press 's' to force sync.
-

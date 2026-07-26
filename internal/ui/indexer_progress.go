@@ -18,14 +18,14 @@ type indexResultMsg struct {
 }
 
 type indexProgressModel struct {
-	spinner  spinner.Model
-	indexer  *index.Indexer
-	theme    Theme
-	done     bool
-	result   index.IndexResult
-	err      error
-	start    time.Time
-	elapsed  time.Duration
+	spinner spinner.Model
+	indexer *index.Indexer
+	theme   Theme
+	done    bool
+	result  index.IndexResult
+	err     error
+	start   time.Time
+	elapsed time.Duration
 }
 
 func (m indexProgressModel) Init() tea.Cmd {
@@ -72,8 +72,7 @@ func (m indexProgressModel) View() string {
 			return lipgloss.NewStyle().Foreground(m.theme.Error).Render("✗ " + errStr)
 		}
 
-		successMsg := fmt.Sprintf("Indexed %d aliases from %d files (skipped %d unchanged) in %v",
-			m.result.AliasesStored,
+		successMsg := fmt.Sprintf("Indexed %d files (skipped %d unchanged) in %v",
 			m.result.FilesScanned,
 			m.result.FilesSkipped,
 			m.result.Duration.Round(time.Millisecond))

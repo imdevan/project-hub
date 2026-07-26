@@ -85,20 +85,20 @@ func (m *ManagerImpl) Exists() (bool, error) {
 }
 
 type partialConfig struct {
-	Editor               *string     `toml:"editor"`
-	Primary              *string     `toml:"primary"`
-	Secondary            *string     `toml:"secondary"`
-	Headings             *string     `toml:"headings"`
-	Text                 *string     `toml:"text"`
-	TextHighlight        *string     `toml:"text_highlight"`
-	DescriptionHighlight *string     `toml:"description_highlight"`
-	Tags                 *string     `toml:"tags"`
-	Flags                *string     `toml:"flags"`
-	Muted                *string     `toml:"muted"`
-	Accent               *string     `toml:"accent"`
-	Border               *string     `toml:"border"`
-	Error                *string     `toml:"error"`
-	Success              *string     `toml:"success"`
+	Editor                   *string     `toml:"editor"`
+	Primary                  *string     `toml:"primary"`
+	Secondary                *string     `toml:"secondary"`
+	Headings                 *string     `toml:"headings"`
+	Text                     *string     `toml:"text"`
+	TextHighlight            *string     `toml:"text_highlight"`
+	DescriptionHighlight     *string     `toml:"description_highlight"`
+	Tags                     *string     `toml:"tags"`
+	Flags                    *string     `toml:"flags"`
+	Muted                    *string     `toml:"muted"`
+	Accent                   *string     `toml:"accent"`
+	Border                   *string     `toml:"border"`
+	Error                    *string     `toml:"error"`
+	Success                  *string     `toml:"success"`
 	ColorTitle               *string     `toml:"color_title"`
 	ColorHighlightBorder     *string     `toml:"color_highlight_border"`
 	ColorName                *string     `toml:"color_name"`
@@ -106,30 +106,26 @@ type partialConfig struct {
 	ColorTasks               *string     `toml:"color_tasks"`
 	ColorProgressBg          *string     `toml:"color_progress_bg"`
 	ColorProgressFg          *string     `toml:"color_progress_fg"`
-	ColorHighlightProgressBg  *string     `toml:"color_highlight_progress_bg"`
+	ColorHighlightProgressBg *string     `toml:"color_highlight_progress_bg"`
 	ColorHighlightProgressFg *string     `toml:"color_highlight_progress_fg"`
-	InteractiveDefault   *bool       `toml:"interactive_default"`
-	PlainText            *bool       `toml:"plain_text"`
-	ConfirmDelete        *bool       `toml:"confirm_delete"`
-	ListSpacing          *string     `toml:"list_spacing"`
-	ShowTaskless         *bool       `toml:"show_taskless"`
-	ExitWithAlias        *string     `toml:"exit_with_alias"`
-	AliasFile            *string     `toml:"alias_file"`
-	IndexFolders         interface{} `toml:"index_folders"`
-	CacheInterval        *int        `toml:"cache_interval"`
-	Shell                *string     `toml:"shell"`
-	AutoAliasSeparator   *string     `toml:"auto_alias_separator"`
-	AutoAliasLowercase   *bool       `toml:"auto_alias_lowercase"`
-	HomeIcon             *string     `toml:"home_icon"`
-	DefaultSortBy        *string     `toml:"default_sort_by"`
-	IgnoreFolders        interface{} `toml:"ignore_folders"`
-	FtsFiles             interface{} `toml:"fts_files"`
-	FtsFeatures          interface{} `toml:"fts_features"`
-	FtsTasks             interface{} `toml:"fts_tasks"`
-	FtsSubtasks          interface{} `toml:"fts_subtasks"`
-	TodoTokens           interface{} `toml:"todo_tokens"`
-	SyncInterval         *int        `toml:"sync_interval"`
-	Rainbow              interface{} `toml:"rainbow"`
+	InteractiveDefault       *bool       `toml:"interactive_default"`
+	PlainText                *bool       `toml:"plain_text"`
+	ConfirmDelete            *bool       `toml:"confirm_delete"`
+	ListSpacing              *string     `toml:"list_spacing"`
+	ShowTaskless             *bool       `toml:"show_taskless"`
+	IndexFolders             interface{} `toml:"index_folders"`
+	CacheInterval            *int        `toml:"cache_interval"`
+	Shell                    *string     `toml:"shell"`
+	HomeIcon                 *string     `toml:"home_icon"`
+	DefaultSortBy            *string     `toml:"default_sort_by"`
+	IgnoreFolders            interface{} `toml:"ignore_folders"`
+	FtsFiles                 interface{} `toml:"fts_files"`
+	FtsFeatures              interface{} `toml:"fts_features"`
+	FtsTasks                 interface{} `toml:"fts_tasks"`
+	FtsSubtasks               interface{} `toml:"fts_subtasks"`
+	TodoTokens               interface{} `toml:"todo_tokens"`
+	SyncInterval             *int        `toml:"sync_interval"`
+	Rainbow                  interface{} `toml:"rainbow"`
 }
 
 func readConfig(path string) (*partialConfig, error) {
@@ -232,12 +228,6 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	if partial.ShowTaskless != nil {
 		config.ShowTaskless = *partial.ShowTaskless
 	}
-	if partial.ExitWithAlias != nil {
-		config.ExitWithAlias = *partial.ExitWithAlias
-	}
-	if partial.AliasFile != nil {
-		config.AliasFile = expandPath(*partial.AliasFile)
-	}
 	if partial.IndexFolders != nil {
 		switch v := partial.IndexFolders.(type) {
 		case string:
@@ -259,12 +249,6 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.Shell != nil {
 		config.Shell = *partial.Shell
-	}
-	if partial.AutoAliasSeparator != nil {
-		config.AutoAliasSeparator = *partial.AutoAliasSeparator
-	}
-	if partial.AutoAliasLowercase != nil {
-		config.AutoAliasLowercase = *partial.AutoAliasLowercase
 	}
 	if partial.HomeIcon != nil {
 		config.HomeIcon = *partial.HomeIcon
@@ -332,25 +316,6 @@ func parseStringSlice(field interface{}) []string {
 		return v
 	}
 	return nil
-}
-
-func expandPath(value string) string {
-	expanded := os.ExpandEnv(value)
-	if expanded == "" {
-		return expanded
-	}
-	if expanded == "~" {
-		if home, err := os.UserHomeDir(); err == nil {
-			return home
-		}
-		return expanded
-	}
-	if strings.HasPrefix(expanded, "~/") {
-		if home, err := os.UserHomeDir(); err == nil {
-			return filepath.Join(home, strings.TrimPrefix(expanded, "~/"))
-		}
-	}
-	return expanded
 }
 
 func fileExists(path string) (bool, error) {

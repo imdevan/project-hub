@@ -1,13 +1,12 @@
 package shell
 
 import (
-"fmt"
-"os"
-"path/filepath"
-"strings"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
-// Adapter handles shell-specific syntax for aliases and functions.
+// Adapter handles shell-specific operations.
 type Adapter struct {
 	shellType string
 }
@@ -15,35 +14,6 @@ type Adapter struct {
 // New creates a new shell adapter for the given shell type.
 func New(shellType string) *Adapter {
 	return &Adapter{shellType: shellType}
-}
-
-// FormatAlias formats a bookmark alias for the configured shell.
-func (a *Adapter) FormatAlias(alias, command string) string {
-	switch a.shellType {
-	case "fish":
-		return a.formatFishFunction(alias, command)
-	case "nu", "nushell":
-		return a.formatNushellAlias(alias, command)
-	default: // bash, zsh, sh
-		return a.formatPosixAlias(alias, command)
-	}
-}
-
-// formatPosixAlias formats an alias for POSIX-compatible shells (bash, zsh, sh).
-func (a *Adapter) formatPosixAlias(alias, command string) string {
-	escaped := strings.ReplaceAll(command, "'", "'\\''")
-	return fmt.Sprintf("alias %s='%s'\n\n", alias, escaped)
-}
-
-// formatFishFunction formats a function for fish shell.
-func (a *Adapter) formatFishFunction(alias, command string) string {
-	return fmt.Sprintf("function %s\n\t%s\nend\n\n", alias, command)
-}
-
-// formatNushellAlias formats an alias for nushell.
-func (a *Adapter) formatNushellAlias(alias, command string) string {
-	// Nushell requires spaces around = in alias
-	return fmt.Sprintf("alias %s = %s\n\n", alias, command)
 }
 
 // GetFileExtension returns the appropriate file extension for the shell.
@@ -88,7 +58,7 @@ func DetectShell() string {
 // normalizeShellName normalizes shell names to standard identifiers.
 func normalizeShellName(name string) string {
 	name = strings.ToLower(name)
-	
+
 	// Handle common variations
 	switch {
 	case strings.Contains(name, "bash"):

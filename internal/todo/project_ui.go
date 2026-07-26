@@ -1,12 +1,9 @@
 package todo
 
 import (
-	"bytes"
 	"fmt"
 	"path/filepath"
-	"strconv"
 	"strings"
-	"text/template"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -130,36 +127,7 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				targetPath = filepath.Join(m.project.Path, relPath)
 			}
 
-			if m.config.ExitWithAlias != "" {
-				tmpl, err := template.New("exit_with_alias").Funcs(template.FuncMap{
-					"quote": quoteShellArg,
-				}).Parse(m.config.ExitWithAlias)
-				if err != nil {
-					m.message = fmt.Sprintf("✗ template error: %s", err)
-					return m, nil
-				}
 
-				var buf bytes.Buffer
-				data := map[string]string{
-					"Project":     quoteShellArg(m.project.Path),
-					"ProjectPath": quoteShellArg(m.project.Path),
-					"TaskFile":    quoteShellArg(relPath),
-					"Line":        strconv.Itoa(lineNum),
-				}
-				if err := tmpl.Execute(&buf, data); err != nil {
-					m.message = fmt.Sprintf("✗ template execution error: %s", err)
-					return m, nil
-				}
-
-				m.selectedCmd = buf.String()
-				
-				if pm, ok := m.parentListModel.(projectListModel); ok {
-					pm.selectedCmd = m.selectedCmd
-					m.parentListModel = pm
-				}
-
-				return m, tea.Quit
-			}
 
 			editorAdapter := editor.New(m.config.Editor)
 			c, err := editorAdapter.BuildCmd(targetPath, lineNum)

@@ -24,24 +24,17 @@ func SetupTestEnv(t *testing.T) *TestEnv {
 
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, ".config")
-	bookmarkDir := filepath.Join(tempDir, ".bookmarks")
 
 	if err := os.MkdirAll(configDir, 0o755); err != nil {
 		t.Fatalf("failed to create config dir: %v", err)
-	}
-	if err := os.MkdirAll(bookmarkDir, 0o755); err != nil {
-		t.Fatalf("failed to create bookmark dir: %v", err)
 	}
 
 	// Create test config file
 	configPath := filepath.Join(configDir, "config.toml")
 
 	cfg := domain.Config{
-		AliasFile:          filepath.Join(bookmarkDir, "aliases.sh"),
-		Shell:              "bash",
-		Editor:             "vim",
-		AutoAliasLowercase: true,
-		AutoAliasSeparator: "",
+		Shell:  "bash",
+		Editor: "vim",
 	}
 
 	// Save config using toml

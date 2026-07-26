@@ -38,19 +38,13 @@ type Config struct {
 	ConfirmDelete            bool   `toml:"confirm_delete"`
 	ListSpacing              string `toml:"list_spacing"`
 
-	// Alias settings
-	AliasFile              string            `toml:"alias_file"`
-	Shell                  string            `toml:"shell"`
-	IndexFolders           []string          `toml:"index_folders"`
-	CacheInterval          int               `toml:"cache_interval"`
-	ScriptIcons            map[string]string `toml:"script_icons"`
-	AutoAliasSeparator     string            `toml:"auto_alias_separator"`
-	AutoAliasLowercase     bool              `toml:"auto_alias_lowercase"`
-	DefaultAliasPartLength int               `toml:"default_alias_part_length"`
-	HomeIcon               string            `toml:"home_icon"`
-	DefaultSortBy          string            `toml:"default_sort_by"`
-	FunctionAlias          string            `toml:"function_alias"`
-	InteractiveAlias       string            `toml:"interactive_alias"`
+	// System settings
+	Shell         string            `toml:"shell"`
+	IndexFolders  []string          `toml:"index_folders"`
+	CacheInterval int               `toml:"cache_interval"`
+	ScriptIcons   map[string]string `toml:"script_icons"`
+	HomeIcon      string            `toml:"home_icon"`
+	DefaultSortBy string            `toml:"default_sort_by"`
 
 	// Todo settings
 	IgnoreFolders []string `toml:"ignore_folders"`
@@ -59,7 +53,6 @@ type Config struct {
 	FtsTasks      []string `toml:"fts_tasks"`
 	FtsSubtasks   []string `toml:"fts_subtasks"`
 	TodoTokens    []string `toml:"todo_tokens"`
-	ExitWithAlias string   `toml:"exit_with_alias"`
 	ShowTaskless  bool     `toml:"show_taskless"`
 	SyncInterval  int      `toml:"sync_interval"`
 
@@ -87,9 +80,7 @@ var DefaultRainbowAnchors = []string{
 
 // DefaultConfig returns the default configuration values.
 func DefaultConfig() Config {
-	home, _ := os.UserHomeDir()
 	detectedShell := shelladapter.DetectShell()
-	aliasFile := filepath.Join(home, ".aliases", GetAliasFileName(detectedShell))
 
 	return Config{
 		Editor:                   "nvim",
@@ -119,18 +110,12 @@ func DefaultConfig() Config {
 		PlainText:                false,
 		ConfirmDelete:            true,
 		ListSpacing:              "space",
-		AliasFile:                aliasFile,
 		Shell:                    detectedShell,
 		IndexFolders:             []string{},
 		CacheInterval:            300,
 		ScriptIcons:              map[string]string{},
-		AutoAliasSeparator:       "",
-		AutoAliasLowercase:       true,
-		DefaultAliasPartLength:   1, // Take 1 character from each part by default
 		HomeIcon:                 "~",
 		DefaultSortBy:            "newest",
-		FunctionAlias:            "true",
-		InteractiveAlias:         "al",
 
 		// Todo defaults
 		IgnoreFolders: []string{"node_modules", "dist", "bin", ".git", ".vscode", "vendor", "build", "target", "pkg", ".venv"},
@@ -139,30 +124,10 @@ func DefaultConfig() Config {
 		FtsTasks:      []string{"- [ ] ", "* [ ] "},
 		FtsSubtasks:   []string{"- [ ] ", "* [ ] "},
 		TodoTokens:    []string{"TODO", "FIXME"},
-		ExitWithAlias: "",
 		ShowTaskless:  false,
 		SyncInterval:  3600,
 		Rainbow:       false,
 	}
-}
-
-// GetAliasFileName returns the appropriate alias filename for the shell.
-func GetAliasFileName(shell string) string {
-	switch shell {
-	case "fish":
-		return "aliases.fish"
-	case "nu", "nushell":
-		return "aliases.nu"
-	case "zsh":
-		return "aliases.zsh"
-	default: // bash, sh
-		return "aliases.sh"
-	}
-}
-
-// ResolvedAliasFile returns the expanded path to the alias file.
-func (c Config) ResolvedAliasFile() string {
-	return expandPath(c.AliasFile)
 }
 
 func expandPath(value string) string {
