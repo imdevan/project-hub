@@ -20,6 +20,8 @@
 # todo_tokens = [{{range $index, $element := .TodoTokens}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
 # cache_interval = {{.CacheInterval}}
 # sync_interval = {{.SyncInterval}}  # Seconds between project scans (default: 3600 = 1 hour). Set to 0 to always rescan.
+# daily_reset = {{printf "%q" .DailyReset}}  # Time of day to reset daily.md checkboxes (default: "04:20")
+# weekly_reset = {{printf "%q" .WeeklyReset}}  # Day of week for weekly.md reset (default: "monday")
 # script_icons = {}
 
 # Display

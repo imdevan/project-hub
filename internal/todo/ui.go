@@ -63,6 +63,8 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 		}
 	}
 
+	recurringProjects := scanner.ScanRecurringProjects()
+
 	if !usedCache {
 		projects = make([]Project, len(dirs))
 		for i, dir := range dirs {
@@ -76,6 +78,15 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 			projects[i] = proj
 		}
 	}
+
+	// Filter out any cached recurring projects to ensure fresh state, then prepend recurring projects
+	var regularProjects []Project
+	for _, p := range projects {
+		if !p.IsRecurring {
+			regularProjects = append(regularProjects, p)
+		}
+	}
+	projects = append(recurringProjects, regularProjects...)
 
 	sortProjects(projects)
 
@@ -669,6 +680,24 @@ func (m projectListModel) getShortHelpKeys() []key.Binding {
 
 func sortProjects(projects []Project) {
 	sort.SliceStable(projects, func(i, j int) bool {
+		// 1. Recurring projects come first (daily before weekly if both)
+		if projects[i].IsRecurring && projects[j].IsRecurring {
+			if projects[i].RecurringType == "daily" && projects[j].RecurringType != "daily" {
+				return true
+			}
+			if projects[i].RecurringType != "daily" && projects[j].RecurringType == "daily" {
+				return false
+			}
+			return strings.ToLower(projects[i].Name) < strings.ToLower(projects[j].Name)
+		}
+		if projects[i].IsRecurring && !projects[j].IsRecurring {
+			return true
+		}
+		if !projects[i].IsRecurring && projects[j].IsRecurring {
+			return false
+		}
+
+		// 2. Pinned projects come next
 		if projects[i].Pinned && projects[j].Pinned {
 			return projects[i].PinOrder < projects[j].PinOrder
 		}
@@ -678,6 +707,8 @@ func sortProjects(projects []Project) {
 		if !projects[i].Pinned && projects[j].Pinned {
 			return false
 		}
+
+		// 3. Regular projects by name
 		return strings.ToLower(projects[i].Name) < strings.ToLower(projects[j].Name)
 	})
 }

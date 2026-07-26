@@ -21,6 +21,10 @@ const (
 	Nvim Icon = "\uf36f"
 	Vim  Icon = "\uf36f"
 
+	// Checkbox icons
+	CheckboxUnchecked Icon = "\uf0c8" // 󰄱 /  (empty box)
+	CheckboxChecked   Icon = "\uf14a" // 󰄲 /  (checked box)
+
 	// File/Script icons
 	File   Icon = "\uf15b" // Generic file icon
 	Script Icon = "\ue691" // Script/terminal icon

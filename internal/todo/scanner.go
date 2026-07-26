@@ -37,6 +37,66 @@ func (s *Scanner) ScanProjects(cwd string) ([]Project, error) {
 	return projects, nil
 }
 
+// ScanRecurringProjects scans daily.md and weekly.md in ~/.config/super-todo/ if present.
+func (s *Scanner) ScanRecurringProjects() []Project {
+	var projects []Project
+	configDir := GetRecurringConfigDir()
+
+	files := []struct {
+		filename string
+		recType  string
+		name     string
+	}{
+		{"daily.md", "daily", "Daily Tasks"},
+		{"weekly.md", "weekly", "Weekly Tasks"},
+	}
+
+	for _, f := range files {
+		filePath := filepath.Join(configDir, f.filename)
+		info, err := os.Stat(filePath)
+		if err != nil || info.IsDir() {
+			continue
+		}
+
+		// Check and reset task checkboxes if interval has passed
+		_ = CheckAndResetRecurringTasks(filePath, f.recType, s.config)
+
+		data, err := os.ReadFile(filePath)
+		if err != nil {
+			continue
+		}
+
+		projName := f.name
+		if customName := ReadYAMLName(string(data)); customName != "" {
+			projName = customName
+		}
+
+		completed, total, features, err := ParseFTSDetailed(filePath, s.config)
+		if err == nil {
+			proj := Project{
+				Name:           projName,
+				Path:           filePath,
+				CompletedTasks: completed,
+				TotalTasks:     total,
+				Scanned:        true,
+				IsRecurring:    true,
+				RecurringType:  f.recType,
+				FtsFiles: []FtsFileDetail{
+					{
+						Path:           f.filename,
+						CompletedTasks: completed,
+						TotalTasks:     total,
+						Features:       features,
+					},
+				},
+			}
+			projects = append(projects, proj)
+		}
+	}
+
+	return projects
+}
+
 // ResolveProjectDirs resolves the project root directories according to config without scanning them.
 func (s *Scanner) ResolveProjectDirs(cwd string) ([]string, error) {
 	var projectDirs []string

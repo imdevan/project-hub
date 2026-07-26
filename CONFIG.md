@@ -34,6 +34,8 @@ The following options can be set in your configuration file:
 | `show_taskless` | bool | `false` | When false, hide projects that don't have any tasks |
 | `fts_files` | array | `["plan/tasks.md", ...]` | Target files for full text tasks |
 | `sync_interval` | int | `3600` | Seconds between project scans |
+| `daily_reset` | string | `"04:20"` | Time of day to reset daily.md checkboxes (HH:MM format) |
+| `weekly_reset` | string | `"monday"` | Day of week for weekly.md reset at daily_reset time |
 
 ## Initializing Configuration
 

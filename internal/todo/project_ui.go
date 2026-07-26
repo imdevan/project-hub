@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/super-todo/internal/adapters/editor"
+	"github.com/super-todo/internal/adapters/icon"
 	"github.com/super-todo/internal/domain"
 	"github.com/super-todo/internal/ui"
 	"github.com/super-todo/internal/utils"
@@ -73,11 +74,13 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case "tab", "right", "left":
-			// Toggle between tabs (0: TODOs, 1: Tasks)
-			if m.activeTab == 0 {
-				m.activeTab = 1
-			} else {
-				m.activeTab = 0
+			// Toggle between tabs (0: TODOs, 1: Tasks) for regular projects
+			if !m.project.IsRecurring {
+				if m.activeTab == 0 {
+					m.activeTab = 1
+				} else {
+					m.activeTab = 0
+				}
 			}
 			return m, nil
 
@@ -99,8 +102,42 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.todoSelected++
 				}
 			} else {
-				if m.taskSelected < len(m.project.FtsFiles)-1 {
+				maxItems := 0
+				if m.project.IsRecurring {
+					if len(m.project.FtsFiles) > 0 {
+						for _, feat := range m.project.FtsFiles[0].Features {
+							maxItems += len(feat.Tasks)
+						}
+					}
+				} else {
+					maxItems = len(m.project.FtsFiles)
+				}
+				if m.taskSelected < maxItems-1 {
 					m.taskSelected++
+				}
+			}
+			return m, nil
+
+		case " ":
+			// Toggle checkbox for recurring tasks via space key
+			if m.project.IsRecurring && len(m.project.FtsFiles) > 0 {
+				var allTasks []TaskItem
+				for _, feat := range m.project.FtsFiles[0].Features {
+					allTasks = append(allTasks, feat.Tasks...)
+				}
+				if m.taskSelected >= 0 && m.taskSelected < len(allTasks) {
+					task := allTasks[m.taskSelected]
+					if err := ToggleTaskInFile(m.project.Path, task.Line); err == nil {
+						// Rescan file content
+						completed, total, features, err := ParseFTSDetailed(m.project.Path, m.config)
+						if err == nil {
+							m.project.CompletedTasks = completed
+							m.project.TotalTasks = total
+							m.project.FtsFiles[0].CompletedTasks = completed
+							m.project.FtsFiles[0].TotalTasks = total
+							m.project.FtsFiles[0].Features = features
+						}
+					}
 				}
 			}
 			return m, nil
@@ -122,9 +159,20 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if len(m.project.FtsFiles) == 0 {
 					return m, nil
 				}
-				fts := m.project.FtsFiles[m.taskSelected]
-				relPath = fts.Path
-				targetPath = filepath.Join(m.project.Path, relPath)
+				if m.project.IsRecurring {
+					targetPath = m.project.Path
+					var allTasks []TaskItem
+					for _, feat := range m.project.FtsFiles[0].Features {
+						allTasks = append(allTasks, feat.Tasks...)
+					}
+					if m.taskSelected >= 0 && m.taskSelected < len(allTasks) {
+						lineNum = allTasks[m.taskSelected].Line
+					}
+				} else {
+					fts := m.project.FtsFiles[m.taskSelected]
+					relPath = fts.Path
+					targetPath = filepath.Join(m.project.Path, relPath)
+				}
 			}
 
 
@@ -202,24 +250,29 @@ func (m projectPageModel) View() string {
 
 	sections = append(sections, "") // blank line separator
 
-	// 3. Tabs bar
-	todoLabel := fmt.Sprintf("TODOs (%d)", len(m.project.Todos))
-	taskLabel := fmt.Sprintf("Tasks (%d)", len(m.project.FtsFiles))
-	var tabs []string
-	
-	if m.activeTab == 0 {
-		tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.ColorHighlightName).Bold(true).Underline(true).Render(todoLabel))
-		tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.Muted).Render(taskLabel))
-	} else {
-		tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.Muted).Render(todoLabel))
-		tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.ColorHighlightName).Bold(true).Underline(true).Render(taskLabel))
+	// 3. Tabs bar (only for regular projects)
+	if !m.project.IsRecurring {
+		todoLabel := fmt.Sprintf("TODOs (%d)", len(m.project.Todos))
+		taskLabel := fmt.Sprintf("Tasks (%d)", len(m.project.FtsFiles))
+		var tabs []string
+		
+		if m.activeTab == 0 {
+			tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.ColorHighlightName).Bold(true).Underline(true).Render(todoLabel))
+			tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.Muted).Render(taskLabel))
+		} else {
+			tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.Muted).Render(todoLabel))
+			tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.ColorHighlightName).Bold(true).Underline(true).Render(taskLabel))
+		}
+		
+		sections = append(sections, "  "+strings.Join(tabs, "    "))
+		sections = append(sections, "") // blank line separator
 	}
-	
-	sections = append(sections, "  "+strings.Join(tabs, "    "))
-	sections = append(sections, "") // blank line separator
 
-	// 4. Render active tab items
+	// 4. Render active tab items or recurring task list
 	availableHeight := m.height - 10
+	if m.project.IsRecurring {
+		availableHeight = m.height - 8
+	}
 	if availableHeight < 2 {
 		availableHeight = 2
 	}
@@ -231,7 +284,26 @@ func (m projectPageModel) View() string {
 	}
 
 	var blocks []renderedBlock
-	if m.activeTab == 0 {
+	var totalTaskItems int
+
+	if m.project.IsRecurring {
+		if len(m.project.FtsFiles) > 0 {
+			taskIdx := 0
+			for _, feat := range m.project.FtsFiles[0].Features {
+				for _, task := range feat.Tasks {
+					block := m.renderRecurringTaskItem(task, taskIdx == m.taskSelected)
+					blockLines := strings.Split(block, "\n")
+					blocks = append(blocks, renderedBlock{
+						index: taskIdx,
+						block: block,
+						lines: len(blockLines),
+					})
+					taskIdx++
+				}
+			}
+			totalTaskItems = taskIdx
+		}
+	} else if m.activeTab == 0 {
 		for i, todo := range m.project.Todos {
 			block := m.renderTodoBlock(todo, i == m.todoSelected)
 			blockLines := strings.Split(block, "\n")
@@ -256,7 +328,7 @@ func (m projectPageModel) View() string {
 	// Calculate scrolling
 	selected := m.todoSelected
 	scrollOffset := m.todoScroll
-	if m.activeTab == 1 {
+	if m.activeTab == 1 || m.project.IsRecurring {
 		selected = m.taskSelected
 		scrollOffset = m.taskScroll
 	}
@@ -283,7 +355,7 @@ func (m projectPageModel) View() string {
 		scrollOffset++
 	}
 
-	if m.activeTab == 0 {
+	if m.activeTab == 0 && !m.project.IsRecurring {
 		m.todoScroll = scrollOffset
 	} else {
 		m.taskScroll = scrollOffset
@@ -291,7 +363,9 @@ func (m projectPageModel) View() string {
 
 	// Render visible viewport
 	if len(blocks) == 0 {
-		if m.activeTab == 0 {
+		if m.project.IsRecurring {
+			sections = append(sections, lipgloss.NewStyle().Foreground(m.theme.Muted).Render("  No tasks found in this file."))
+		} else if m.activeTab == 0 {
 			sections = append(sections, lipgloss.NewStyle().Foreground(m.theme.Muted).Render("  No TODOs found in this project."))
 		} else {
 			sections = append(sections, lipgloss.NewStyle().Foreground(m.theme.Muted).Render("  No task files found in this project."))
@@ -303,17 +377,24 @@ func (m projectPageModel) View() string {
 				break
 			}
 			sections = append(sections, blocks[i].block)
-			sections = append(sections, "")
-			totalLinesRendered += blocks[i].lines + 1
+			totalLinesRendered += blocks[i].lines
 		}
 	}
 
 	// Help footer & Pagination
 	footerStyle := lipgloss.NewStyle().Foreground(m.theme.Muted)
 	helpText := "j/k/↑/↓: navigate • tab/h/l: switch tab • o/enter: open • esc: back"
+	if m.project.IsRecurring {
+		helpText = "j/k/↑/↓: navigate • space: toggle • o/enter: open • esc: back"
+	}
 	
 	var paginationText string
-	if m.activeTab == 0 {
+	if m.project.IsRecurring {
+		paginationText = fmt.Sprintf("item %d of %d", m.taskSelected+1, totalTaskItems)
+		if totalTaskItems == 0 {
+			paginationText = "item 0 of 0"
+		}
+	} else if m.activeTab == 0 {
 		paginationText = fmt.Sprintf("item %d of %d", m.todoSelected+1, len(m.project.Todos))
 		if len(m.project.Todos) == 0 {
 			paginationText = "item 0 of 0"
@@ -445,6 +526,44 @@ func (m projectPageModel) renderTaskBlock(fts FtsFileDetail, isSelected bool) st
 	}
 	lines = append(lines, indicator+"  "+fBarStr)
 	lines = append(lines, indicator+"  "+statsStr)
+
+	return strings.Join(lines, "\n")
+}
+
+func (m projectPageModel) renderRecurringTaskItem(task TaskItem, isSelected bool) string {
+	indicator := "  "
+	if isSelected {
+		indicator = lipgloss.NewStyle().Foreground(m.theme.Primary).Render("│ ")
+	}
+
+	checkbox := icon.CheckboxUnchecked.String() + " "
+	checkStyle := lipgloss.NewStyle().Foreground(m.theme.Muted)
+	textStyle := lipgloss.NewStyle().Foreground(m.theme.ColorName)
+
+	if task.Completed {
+		checkbox = icon.CheckboxChecked.String() + " "
+		checkStyle = lipgloss.NewStyle().Foreground(m.theme.Success)
+		textStyle = textStyle.Strikethrough(true).Foreground(m.theme.Muted)
+	}
+
+	if isSelected {
+		textStyle = textStyle.Foreground(m.theme.ColorHighlightName).Bold(true)
+	}
+
+	contentWidth := m.width - 8
+	if contentWidth < 10 {
+		contentWidth = 10
+	}
+
+	wrappedText := utils.WrapText(task.Text, contentWidth)
+	var lines []string
+	for i, line := range wrappedText {
+		if i == 0 {
+			lines = append(lines, indicator+checkStyle.Render(checkbox)+textStyle.Render(line))
+		} else {
+			lines = append(lines, indicator+"    "+textStyle.Render(line))
+		}
+	}
 
 	return strings.Join(lines, "\n")
 }

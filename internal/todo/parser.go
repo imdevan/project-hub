@@ -122,7 +122,7 @@ func ParseFTSDetailed(filePath string, cfg domain.Config) (completed, total int,
 	lines := strings.Split(string(data), "\n")
 	var currentFeature *Feature
 
-	for _, line := range lines {
+	for lineIdx, line := range lines {
 		trimmed := strings.TrimSpace(line)
 
 		// Check for Feature headers
@@ -186,6 +186,7 @@ func ParseFTSDetailed(filePath string, cfg domain.Config) (completed, total int,
 			}
 
 			task := TaskItem{
+				Line:      lineIdx + 1,
 				Text:      matchedText,
 				Completed: isChecked,
 			}

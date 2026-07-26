@@ -2,6 +2,7 @@ package domain
 
 // TaskItem represents a single parsed task or subtask.
 type TaskItem struct {
+	Line      int
 	Text      string
 	Completed bool
 }
@@ -37,6 +38,8 @@ type Project struct {
 	FtsFiles       []FtsFileDetail
 	Pinned         bool
 	PinOrder       int
+	IsRecurring    bool
+	RecurringType  string // "daily" or "weekly"
 }
 
 // Progress returns the completion percentage of tasks, or 0 if no tasks exist.
