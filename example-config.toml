@@ -7,7 +7,7 @@ confirm_delete = true
 
 # System settings
 shell = "zsh"                          # Options: bash, zsh, fish, nu (auto-detected if not specified)
-index_folders = []
+index_folders = ["~/Projects/*"]       # Glob patterns to scan for projects to index
 cache_interval = 300
 script_icons = {}
 
