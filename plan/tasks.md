@@ -159,3 +159,12 @@ var defaultRainbowAnchors = []lipgloss.Color{
 	"#ee99a0", // Maroon
 	"#ed8796", // Red
 }
+
+## Feature 14: recurring todo projects
+
+~/.config/super-todo/daily.md
+~/.config/super-todo/weekly.md
+
+tasks in daily and weekly are presented above all other tasks including pinned
+
+these are special task files that are always indexed if present. 
