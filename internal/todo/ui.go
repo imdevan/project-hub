@@ -671,7 +671,7 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				pm := newProjectPageModel(&item.Project, m.config, m.theme, func() (tea.Model, tea.Cmd) {
 					m.activeView = "list"
 					return m, nil
-				}, m)
+				}, m, m.list.Index())
 				pm.width = m.list.Width()
 				pm.height = m.list.Height()
 				m.projectPageModel = &pm

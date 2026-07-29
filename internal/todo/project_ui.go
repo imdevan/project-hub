@@ -38,6 +38,7 @@ type projectPageModel struct {
 	ignoreTargetAbsPath string
 	ignoreIsUnignore    bool
 	showIgnored         bool
+	projectIndex        int
 }
 
 func (m projectPageModel) visibleFtsFiles() []FtsFileDetail {
@@ -53,7 +54,7 @@ func (m projectPageModel) visibleFtsFiles() []FtsFileDetail {
 	return visible
 }
 
-func newProjectPageModel(proj *Project, cfg domain.Config, theme ui.Theme, onBack func() (tea.Model, tea.Cmd), parent tea.Model) projectPageModel {
+func newProjectPageModel(proj *Project, cfg domain.Config, theme ui.Theme, onBack func() (tea.Model, tea.Cmd), parent tea.Model, projectIndex int) projectPageModel {
 	activeTab := 0
 	hasVisibleTasks := false
 	if proj != nil {
@@ -75,6 +76,7 @@ func newProjectPageModel(proj *Project, cfg domain.Config, theme ui.Theme, onBac
 		onBack:          onBack,
 		parentListModel: parent,
 		activeTab:       activeTab,
+		projectIndex:    projectIndex,
 	}
 }
 
@@ -319,13 +321,26 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m projectPageModel) View() string {
 	var sections []string
 
+	rainbowColors := ui.GetRainbowColors(m.config.Rainbow)
+	useRainbow := len(rainbowColors) > 0
+
+	titleColor := m.theme.Title
+	progressFgColor := m.theme.ProgressFg
+	highlightColor := m.theme.HighlightName
+	if useRainbow {
+		c := rainbowColors[m.projectIndex%len(rainbowColors)]
+		titleColor = c
+		progressFgColor = c
+		highlightColor = c
+	}
+
 	// 1. Back Header
-	headerStyle := lipgloss.NewStyle().Foreground(m.theme.Primary).Bold(true)
+	headerStyle := lipgloss.NewStyle().Foreground(progressFgColor).Bold(true)
 	sections = append(sections, headerStyle.Render("← Back to Projects (esc)"))
 	sections = append(sections, "")
 
 	// 2. Project Metadata block
-	titleStyle := lipgloss.NewStyle().Bold(true).Foreground(m.theme.Title)
+	titleStyle := lipgloss.NewStyle().Bold(true).Foreground(titleColor)
 	pathStyle := lipgloss.NewStyle().Foreground(m.theme.Muted)
 
 	nameStr := titleStyle.Render(m.project.Name)
@@ -360,7 +375,7 @@ func (m projectPageModel) View() string {
 		filled = (completed * barWidth) / total
 	}
 	
-	fgStyle := lipgloss.NewStyle().Foreground(m.theme.ProgressFg)
+	fgStyle := lipgloss.NewStyle().Foreground(progressFgColor)
 	bgStyle := lipgloss.NewStyle().Foreground(m.theme.ProgressBg)
 	filledPart := fgStyle.Render(strings.Repeat("█", filled))
 	emptyPart := bgStyle.Render(strings.Repeat("░", barWidth-filled))
@@ -385,11 +400,11 @@ func (m projectPageModel) View() string {
 	var tabs []string
 	
 	if m.activeTab == 0 {
-		tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.HighlightName).Bold(true).Underline(true).Render(todoLabel))
+		tabs = append(tabs, lipgloss.NewStyle().Foreground(highlightColor).Bold(true).Underline(true).Render(todoLabel))
 		tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.Muted).Render(taskLabel))
 	} else {
 		tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.Muted).Render(todoLabel))
-		tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.HighlightName).Bold(true).Underline(true).Render(taskLabel))
+		tabs = append(tabs, lipgloss.NewStyle().Foreground(highlightColor).Bold(true).Underline(true).Render(taskLabel))
 	}
 	
 	sections = append(sections, "  "+strings.Join(tabs, "    "))
@@ -411,7 +426,7 @@ func (m projectPageModel) View() string {
 
 	if m.activeTab == 0 {
 		for i, todo := range m.project.Todos {
-			block := m.renderTodoBlock(todo, i == m.todoSelected)
+			block := m.renderTodoBlock(todo, i == m.todoSelected, highlightColor)
 			blockLines := strings.Split(block, "\n")
 			blocks = append(blocks, renderedBlock{
 				index: i,
@@ -421,7 +436,7 @@ func (m projectPageModel) View() string {
 		}
 	} else {
 		for i, fts := range visibleFts {
-			block := m.renderTaskBlock(fts, i == m.taskSelected)
+			block := m.renderTaskBlock(fts, i == m.taskSelected, highlightColor)
 			blockLines := strings.Split(block, "\n")
 			blocks = append(blocks, renderedBlock{
 				index: i,
@@ -561,10 +576,10 @@ func (m projectPageModel) View() string {
 	return baseView
 }
 
-func (m projectPageModel) renderTodoBlock(todo TodoComment, isSelected bool) string {
+func (m projectPageModel) renderTodoBlock(todo TodoComment, isSelected bool, highlightColor lipgloss.Color) string {
 	indicator := "  "
 	if isSelected {
-		indicator = lipgloss.NewStyle().Foreground(m.theme.Primary).Render("│ ")
+		indicator = lipgloss.NewStyle().Foreground(highlightColor).Render("│ ")
 	}
 
 	contentWidth := m.width - 4
@@ -574,7 +589,7 @@ func (m projectPageModel) renderTodoBlock(todo TodoComment, isSelected bool) str
 
 	titleStyle := lipgloss.NewStyle().Bold(true)
 	if isSelected {
-		titleStyle = titleStyle.Foreground(m.theme.HighlightName)
+		titleStyle = titleStyle.Foreground(highlightColor)
 	} else {
 		titleStyle = titleStyle.Foreground(m.theme.Name)
 	}
@@ -595,10 +610,10 @@ func (m projectPageModel) renderTodoBlock(todo TodoComment, isSelected bool) str
 	return strings.Join(lines, "\n")
 }
 
-func (m projectPageModel) renderTaskBlock(fts FtsFileDetail, isSelected bool) string {
+func (m projectPageModel) renderTaskBlock(fts FtsFileDetail, isSelected bool, highlightColor lipgloss.Color) string {
 	indicator := "  "
 	if isSelected {
-		indicator = lipgloss.NewStyle().Foreground(m.theme.Primary).Render("│ ")
+		indicator = lipgloss.NewStyle().Foreground(highlightColor).Render("│ ")
 	}
 
 	contentWidth := m.width - 4
@@ -608,7 +623,7 @@ func (m projectPageModel) renderTaskBlock(fts FtsFileDetail, isSelected bool) st
 
 	titleStyle := lipgloss.NewStyle().Bold(true)
 	if isSelected {
-		titleStyle = titleStyle.Foreground(m.theme.HighlightName)
+		titleStyle = titleStyle.Foreground(highlightColor)
 	} else {
 		titleStyle = titleStyle.Foreground(m.theme.Name)
 	}
@@ -636,7 +651,7 @@ func (m projectPageModel) renderTaskBlock(fts FtsFileDetail, isSelected bool) st
 	fFgStyle := lipgloss.NewStyle().Foreground(m.theme.ProgressFg)
 	fBgStyle := lipgloss.NewStyle().Foreground(m.theme.ProgressBg)
 	if isSelected {
-		fFgStyle = lipgloss.NewStyle().Foreground(m.theme.HighlightProgressFg)
+		fFgStyle = lipgloss.NewStyle().Foreground(highlightColor)
 		fBgStyle = lipgloss.NewStyle().Foreground(m.theme.HighlightProgressBg)
 	}
 	
