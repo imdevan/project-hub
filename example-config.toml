@@ -1,15 +1,9 @@
 # General
 editor = "nvim"
 
-# CLI behavior
-interactive_default = false
-confirm_delete = true
-
 # System settings
-shell = "zsh"                          # Options: bash, zsh, fish, nu (auto-detected if not specified)
 index_folders = ["~/Projects/*"]       # Glob patterns to scan for projects to index
 cache_interval = 300
-script_icons = {}
 
 # Display
 home_icon = "~"  # Icon to represent home directory in list view
@@ -52,4 +46,3 @@ todo_tokens = ["TODO", "FIXME"]
 sync_interval = 3600  # Seconds between project scans. Set to 0 to always rescan. Press 's' to force sync.
 daily_reset = "04:20" # Time of day to reset daily.md checkboxes (HH:MM format)
 weekly_reset = "monday" # Day of week for weekly.md reset at daily_reset time
-exit_with_alias = false # When true, output cd command on selection exit for shell eval

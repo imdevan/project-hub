@@ -13,9 +13,6 @@ The following options can be set in your configuration file:
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `editor` | string | `nvim` | Editor to use for editing projects and config files |
-| `interactive_default` | bool | `false` | Start in interactive mode by default |
-| `confirm_delete` | bool | `true` | Prompt for confirmation before deleting |
-| `plain_text` | bool | `false` | Output plain text confirmation messages and errors instead of styled output |
 
 ### Display Settings
 
@@ -36,7 +33,6 @@ The following options can be set in your configuration file:
 | `sync_interval` | int | `3600` | Seconds between project scans |
 | `daily_reset` | string | `"04:20"` | Time of day to reset daily.md checkboxes (HH:MM format) |
 | `weekly_reset` | string | `"monday"` | Day of week for weekly.md reset at daily_reset time |
-| `exit_with_alias` | bool | `false` | When true, output cd command on selection exit for shell eval |
 
 ## Initializing Configuration
 

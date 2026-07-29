@@ -3,13 +3,7 @@
 # General
 # editor = {{printf "%q" .Editor}}
 
-# CLI behavior
-# interactive_default = {{.InteractiveDefault}}
-# plain_text = false  # When true: output plain text confirmation messages and errors instead of styled output
-# confirm_delete = {{.ConfirmDelete}}
-
 # Settings
-# shell = {{printf "%q" .Shell}}  # Options: bash, zsh, fish, nu
 # index_folders = []  # Glob patterns to scan for projects (e.g. ["~/Projects/*"])
 # ignore_folders = [{{range $index, $element := .IgnoreFolders}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
 # show_taskless = {{.ShowTaskless}}  # When false: hide projects that don't have any tasks
@@ -22,7 +16,6 @@
 # sync_interval = {{.SyncInterval}}  # Seconds between project scans (default: 3600 = 1 hour). Set to 0 to always rescan.
 # daily_reset = {{printf "%q" .DailyReset}}  # Time of day to reset daily.md checkboxes (default: "04:20")
 # weekly_reset = {{printf "%q" .WeeklyReset}}  # Day of week for weekly.md reset (default: "monday")
-# script_icons = {}
 
 # Display
 # home_icon = {{printf "%q" .HomeIcon}}  # Icon to represent home directory in list view

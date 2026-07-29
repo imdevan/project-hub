@@ -78,12 +78,6 @@ func TestDefaultConfig(t *testing.T) {
 		}
 	})
 
-	t.Run("has interactive default disabled", func(t *testing.T) {
-		if cfg.InteractiveDefault {
-			t.Error("DefaultConfig().InteractiveDefault should be false")
-		}
-	})
-
 	t.Run("has list spacing set", func(t *testing.T) {
 		if cfg.ListSpacing == "" {
 			t.Error("DefaultConfig().ListSpacing should not be empty")
@@ -117,9 +111,6 @@ func TestDefaultConfig_Consistency(t *testing.T) {
 		if cfg1.Headings != cfg2.Headings {
 			t.Error("DefaultConfig() should return consistent Headings values")
 		}
-		if cfg1.InteractiveDefault != cfg2.InteractiveDefault {
-			t.Error("DefaultConfig() should return consistent InteractiveDefault values")
-		}
 	})
 }
 
@@ -131,7 +122,6 @@ func TestConfig_StructTags(t *testing.T) {
 		// Set values to ensure struct is properly tagged
 		cfg.Editor = "test"
 		cfg.Primary = "01"
-		cfg.InteractiveDefault = false
 		cfg.ListSpacing = "compact"
 
 		// If this compiles and runs, the struct tags are present

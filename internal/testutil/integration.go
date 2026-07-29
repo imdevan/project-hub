@@ -33,7 +33,6 @@ func SetupTestEnv(t *testing.T) *TestEnv {
 	configPath := filepath.Join(configDir, "config.toml")
 
 	cfg := domain.Config{
-		Shell:  "bash",
 		Editor: "vim",
 	}
 

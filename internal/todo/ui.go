@@ -18,7 +18,6 @@ import (
 
 	"github.com/super-todo/internal/adapters/editor"
 	"github.com/super-todo/internal/adapters/icon"
-	shelladapter "github.com/super-todo/internal/adapters/shell"
 	"github.com/super-todo/internal/adapters/tty"
 	"github.com/super-todo/internal/domain"
 	"github.com/super-todo/internal/index"
@@ -591,12 +590,6 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "enter":
 			if item, ok := m.list.SelectedItem().(projectItem); ok {
-				if m.config.ExitWithAlias {
-					sh := shelladapter.New(m.config.Shell)
-					m.selectedCmd = sh.FormatExitCommand(item.Project.Path)
-					return m, tea.Quit
-				}
-
 				m.activeView = "project"
 				pm := newProjectPageModel(&item.Project, m.config, m.theme, func() (tea.Model, tea.Cmd) {
 					m.activeView = "list"

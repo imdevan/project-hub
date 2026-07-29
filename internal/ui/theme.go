@@ -31,7 +31,6 @@ type Theme struct {
 	ColorProgressFg          lipgloss.Color
 	ColorHighlightProgressBg  lipgloss.Color
 	ColorHighlightProgressFg lipgloss.Color
-	PlainText                bool
 }
 
 // ThemeFromConfig builds a theme with safe fallbacks.
@@ -65,7 +64,6 @@ func ThemeFromConfig(cfg domain.Config) Theme {
 		ColorProgressFg:          resolveColor(cfg.ColorProgressFg, string(primary)),
 		ColorHighlightProgressBg:  resolveColor(cfg.ColorHighlightProgressBg, string(muted)),
 		ColorHighlightProgressFg: resolveColor(cfg.ColorHighlightProgressFg, string(textHighlight)),
-		PlainText:                cfg.PlainText,
 	}
 }
 

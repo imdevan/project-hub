@@ -4,8 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	shelladapter "github.com/super-todo/internal/adapters/shell"
 )
 
 // Config describes the resolved configuration.
@@ -33,16 +31,11 @@ type Config struct {
 	ColorProgressFg          string `toml:"color_progress_fg"`
 	ColorHighlightProgressBg string `toml:"color_highlight_progress_bg"`
 	ColorHighlightProgressFg string `toml:"color_highlight_progress_fg"`
-	InteractiveDefault       bool   `toml:"interactive_default"`
-	PlainText                bool   `toml:"plain_text"`
-	ConfirmDelete            bool   `toml:"confirm_delete"`
 	ListSpacing              string `toml:"list_spacing"`
 
 	// System settings
-	Shell         string            `toml:"shell"`
 	IndexFolders  []string          `toml:"index_folders"`
 	CacheInterval int               `toml:"cache_interval"`
-	ScriptIcons   map[string]string `toml:"script_icons"`
 	HomeIcon      string            `toml:"home_icon"`
 	DefaultSortBy string            `toml:"default_sort_by"`
 
@@ -57,7 +50,6 @@ type Config struct {
 	SyncInterval  int      `toml:"sync_interval"`
 	DailyReset    string   `toml:"daily_reset"`
 	WeeklyReset   string   `toml:"weekly_reset"`
-	ExitWithAlias bool     `toml:"exit_with_alias"`
 
 	// Rainbow settings
 	Rainbow interface{} `toml:"rainbow"`
@@ -83,8 +75,6 @@ var DefaultRainbowAnchors = []string{
 
 // DefaultConfig returns the default configuration values.
 func DefaultConfig() Config {
-	detectedShell := shelladapter.DetectShell()
-
 	return Config{
 		Editor:                   "nvim",
 		Headings:                 "15",
@@ -109,14 +99,9 @@ func DefaultConfig() Config {
 		ColorProgressFg:          "02",
 		ColorHighlightProgressBg: "08",
 		ColorHighlightProgressFg: "10",
-		InteractiveDefault:       false,
-		PlainText:                false,
-		ConfirmDelete:            true,
 		ListSpacing:              "space",
-		Shell:                    detectedShell,
 		IndexFolders:             []string{},
 		CacheInterval:            300,
-		ScriptIcons:              map[string]string{},
 		HomeIcon:                 "~",
 		DefaultSortBy:            "newest",
 
@@ -131,7 +116,6 @@ func DefaultConfig() Config {
 		SyncInterval:  3600,
 		DailyReset:    "04:20",
 		WeeklyReset:   "monday",
-		ExitWithAlias: false,
 		Rainbow:       false,
 	}
 }

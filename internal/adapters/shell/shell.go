@@ -1,9 +1,11 @@
 package shell
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 )
 
 // Adapter handles shell-specific operations.
@@ -77,15 +79,46 @@ func normalizeShellName(name string) string {
 	}
 }
 
-// FormatExitCommand formats a shell cd command for eval when exiting with a selected project path.
-func (a *Adapter) FormatExitCommand(dir string) string {
-	quoted := "'" + strings.ReplaceAll(dir, "'", "'\\''") + "'"
-	switch a.shellType {
-	case "fish":
-		return "cd " + quoted
-	case "nu", "nushell":
-		return "cd " + quoted
-	default:
+// ExitContext contains data available to the exit_with_alias template.
+type ExitContext struct {
+	Project    string
+	ProjectDir string
+	TaskFile   string
+	Shell      string
+
+	// Lowercase aliases for convenience
+	project    string
+	projectDir string
+	taskFile   string
+	shell      string
+}
+
+// FormatExitCommand formats the exit command string for eval when exiting with selection.
+func (a *Adapter) FormatExitCommand(tmplStr string, ctx ExitContext) string {
+	if tmplStr == "" {
+		return ""
+	}
+	if tmplStr == "true" {
+		tmplStr = "cd {{.ProjectDir}}"
+	}
+
+	funcMap := template.FuncMap{
+		"quote": func(s string) string {
+			return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
+		},
+	}
+
+	tmpl, err := template.New("exit").Funcs(funcMap).Parse(tmplStr)
+	if err != nil {
+		quoted := "'" + strings.ReplaceAll(ctx.ProjectDir, "'", "'\\''") + "'"
 		return "cd " + quoted
 	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, ctx); err != nil {
+		quoted := "'" + strings.ReplaceAll(ctx.ProjectDir, "'", "'\\''") + "'"
+		return "cd " + quoted
+	}
+
+	return buf.String()
 }

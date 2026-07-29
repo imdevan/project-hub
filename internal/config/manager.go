@@ -108,14 +108,10 @@ type partialConfig struct {
 	ColorProgressFg          *string     `toml:"color_progress_fg"`
 	ColorHighlightProgressBg *string     `toml:"color_highlight_progress_bg"`
 	ColorHighlightProgressFg *string     `toml:"color_highlight_progress_fg"`
-	InteractiveDefault       *bool       `toml:"interactive_default"`
-	PlainText                *bool       `toml:"plain_text"`
-	ConfirmDelete            *bool       `toml:"confirm_delete"`
 	ListSpacing              *string     `toml:"list_spacing"`
 	ShowTaskless             *bool       `toml:"show_taskless"`
 	IndexFolders             interface{} `toml:"index_folders"`
 	CacheInterval            *int        `toml:"cache_interval"`
-	Shell                    *string     `toml:"shell"`
 	HomeIcon                 *string     `toml:"home_icon"`
 	DefaultSortBy            *string     `toml:"default_sort_by"`
 	IgnoreFolders            interface{} `toml:"ignore_folders"`
@@ -127,7 +123,6 @@ type partialConfig struct {
 	SyncInterval             *int        `toml:"sync_interval"`
 	DailyReset               *string     `toml:"daily_reset"`
 	WeeklyReset              *string     `toml:"weekly_reset"`
-	ExitWithAlias            *bool       `toml:"exit_with_alias"`
 	Rainbow                  interface{} `toml:"rainbow"`
 }
 
@@ -216,15 +211,6 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	if partial.ColorHighlightProgressFg != nil {
 		config.ColorHighlightProgressFg = *partial.ColorHighlightProgressFg
 	}
-	if partial.InteractiveDefault != nil {
-		config.InteractiveDefault = *partial.InteractiveDefault
-	}
-	if partial.PlainText != nil {
-		config.PlainText = *partial.PlainText
-	}
-	if partial.ConfirmDelete != nil {
-		config.ConfirmDelete = *partial.ConfirmDelete
-	}
 	if partial.ListSpacing != nil {
 		config.ListSpacing = *partial.ListSpacing
 	}
@@ -249,9 +235,6 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.CacheInterval != nil {
 		config.CacheInterval = *partial.CacheInterval
-	}
-	if partial.Shell != nil {
-		config.Shell = *partial.Shell
 	}
 	if partial.HomeIcon != nil {
 		config.HomeIcon = *partial.HomeIcon
@@ -285,9 +268,6 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.WeeklyReset != nil {
 		config.WeeklyReset = *partial.WeeklyReset
-	}
-	if partial.ExitWithAlias != nil {
-		config.ExitWithAlias = *partial.ExitWithAlias
 	}
 	if partial.Rainbow != nil {
 		switch v := partial.Rainbow.(type) {

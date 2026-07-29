@@ -66,9 +66,6 @@ func (m indexProgressModel) View() string {
 	if m.done {
 		if m.err != nil {
 			errStr := fmt.Sprintf("Indexing failed: %v", m.err)
-			if m.theme.PlainText {
-				return errStr
-			}
 			return lipgloss.NewStyle().Foreground(m.theme.Error).Render("✗ " + errStr)
 		}
 
@@ -77,9 +74,6 @@ func (m indexProgressModel) View() string {
 			m.result.FilesSkipped,
 			m.result.Duration.Round(time.Millisecond))
 
-		if m.theme.PlainText {
-			return successMsg
-		}
 		return fmt.Sprintf("%s %s",
 			lipgloss.NewStyle().Foreground(m.theme.Success).Render("✔"),
 			lipgloss.NewStyle().Foreground(m.theme.Text).Render(successMsg))
@@ -98,9 +92,8 @@ func (m indexProgressModel) View() string {
 }
 
 // RefreshWithSpinner runs the indexing operation with a visual progress spinner.
-// If theme.PlainText is true, it runs the indexer synchronously without showing a spinner.
 func RefreshWithSpinner(indexer *index.Indexer, theme Theme) (index.IndexResult, error) {
-	if theme.PlainText || !tty.IsTerminal(os.Stdout.Fd()) {
+	if !tty.IsTerminal(os.Stdout.Fd()) {
 		return indexer.Refresh(), nil
 	}
 

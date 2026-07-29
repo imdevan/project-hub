@@ -278,9 +278,6 @@ func TestManagerPartialConfig(t *testing.T) {
 		if cfg.Headings != "15" {
 			t.Errorf("expected default headings, got %q", cfg.Headings)
 		}
-		if cfg.InteractiveDefault {
-			t.Error("expected default interactive_default to be false")
-		}
 	})
 }
 
@@ -358,7 +355,7 @@ func TestManagerBooleanOverrides(t *testing.T) {
 		t.Fatalf("mkdir config dir: %v", err)
 	}
 
-	data := []byte("interactive_default = false\n")
+	data := []byte("show_taskless = true\n")
 	if err := os.WriteFile(configPath, data, 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
@@ -369,8 +366,8 @@ func TestManagerBooleanOverrides(t *testing.T) {
 		t.Fatalf("load: %v", err)
 	}
 
-	if cfg.InteractiveDefault {
-		t.Error("expected interactive_default to be false from config")
+	if !cfg.ShowTaskless {
+		t.Error("expected show_taskless to be true from config")
 	}
 }
 

@@ -74,7 +74,7 @@ func (m projectScanModel) View() string {
 }
 
 func scanProjectsWithSpinner(scanner *Scanner, cwd string, theme ui.Theme) ([]Project, error) {
-	if theme.PlainText || !tty.IsTerminal(os.Stdout.Fd()) {
+	if !tty.IsTerminal(os.Stdout.Fd()) {
 		return scanner.ScanProjects(cwd)
 	}
 

@@ -16,9 +16,7 @@ func CanceledMessage(theme Theme, action ...string) string {
 		title = action[0] + " canceled"
 	}
 
-	if theme.PlainText {
-		return title
-	}
+
 
 	titleStyled := lipgloss.NewStyle().
 		// Render(fmt.Sprintf("%s %s", icon.Failure, title))
@@ -37,9 +35,7 @@ func CanceledMessage(theme Theme, action ...string) string {
 // body is the pre-formatted content to display below the title.
 // inline renders title and body on one line without a border.
 func SuccessMessage(theme Theme, action, body string, inline bool) string {
-	if theme.PlainText {
-		return fmt.Sprintf("Alias %s: %s", action, body)
-	}
+
 
 	title := fmt.Sprintf("%s Alias %s:", icon.Success, action)
 
@@ -61,9 +57,7 @@ func SuccessMessage(theme Theme, action, body string, inline bool) string {
 
 // ErrorMessage renders a styled error message with failure icon.
 func ErrorMessage(theme Theme, msg string) string {
-	if theme.PlainText {
-		return fmt.Sprintf("Error: %s", msg)
-	}
+
 
 	title := fmt.Sprintf("%s Error:", icon.Failure)
 
