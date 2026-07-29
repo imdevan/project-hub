@@ -13,7 +13,7 @@
 # script_icons = {}
 # exit_with_alias
 ```
-- [ ] 1.3 remove unused color variables
+- [ ] 1.3 remove unused / consolidate color variables
 
 ```md
 # headings = "15"
