@@ -35,5 +35,5 @@
 validate they are not used before removing. 
 the goal is to create a consistent color theme. 
 
-- [ ] 1.4.1 confirm all colors are defined via config. no magic color variables.
+- [x] 1.4.1 confirm all colors are defined via config. no magic color variables.
 
