@@ -127,6 +127,7 @@ type partialConfig struct {
 	SyncInterval             *int        `toml:"sync_interval"`
 	DailyReset               *string     `toml:"daily_reset"`
 	WeeklyReset              *string     `toml:"weekly_reset"`
+	ExitWithAlias            *bool       `toml:"exit_with_alias"`
 	Rainbow                  interface{} `toml:"rainbow"`
 }
 
@@ -284,6 +285,9 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.WeeklyReset != nil {
 		config.WeeklyReset = *partial.WeeklyReset
+	}
+	if partial.ExitWithAlias != nil {
+		config.ExitWithAlias = *partial.ExitWithAlias
 	}
 	if partial.Rainbow != nil {
 		switch v := partial.Rainbow.(type) {

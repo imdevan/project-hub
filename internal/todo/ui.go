@@ -18,6 +18,7 @@ import (
 
 	"github.com/super-todo/internal/adapters/editor"
 	"github.com/super-todo/internal/adapters/icon"
+	shelladapter "github.com/super-todo/internal/adapters/shell"
 	"github.com/super-todo/internal/adapters/tty"
 	"github.com/super-todo/internal/domain"
 	"github.com/super-todo/internal/index"
@@ -265,8 +266,15 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 		}
 	}
 
-	statsText := fmt.Sprintf("(%d/%d) tasks complete", completed, total)
-	todoText := fmt.Sprintf("%d todos", todoCount)
+	var statsText string
+	var todoText string
+	if m.Width() < 60 {
+		statsText = fmt.Sprintf("(%d/%d)", completed, total)
+		todoText = fmt.Sprintf("+%d", todoCount)
+	} else {
+		statsText = fmt.Sprintf("(%d/%d) tasks complete", completed, total)
+		todoText = fmt.Sprintf("%d todos", todoCount)
+	}
 
 	var metadataLine string
 	if proj.Project.IsRecurring {
@@ -583,6 +591,12 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "enter":
 			if item, ok := m.list.SelectedItem().(projectItem); ok {
+				if m.config.ExitWithAlias {
+					sh := shelladapter.New(m.config.Shell)
+					m.selectedCmd = sh.FormatExitCommand(item.Project.Path)
+					return m, tea.Quit
+				}
+
 				m.activeView = "project"
 				pm := newProjectPageModel(&item.Project, m.config, m.theme, func() (tea.Model, tea.Cmd) {
 					m.activeView = "list"

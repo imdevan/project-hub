@@ -2,6 +2,7 @@ package todo
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -10,6 +11,7 @@ import (
 
 	"github.com/super-todo/internal/adapters/editor"
 	"github.com/super-todo/internal/adapters/icon"
+	shelladapter "github.com/super-todo/internal/adapters/shell"
 	"github.com/super-todo/internal/domain"
 	"github.com/super-todo/internal/ui"
 	"github.com/super-todo/internal/utils"
@@ -177,6 +179,16 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 
 
+			if m.config.ExitWithAlias {
+				sh := shelladapter.New(m.config.Shell)
+				dir := m.project.Path
+				if info, err := os.Stat(dir); err == nil && !info.IsDir() {
+					dir = filepath.Dir(dir)
+				}
+				m.selectedCmd = sh.FormatExitCommand(dir)
+				return m, tea.Quit
+			}
+
 			editorAdapter := editor.New(m.config.Editor)
 			c, err := editorAdapter.BuildCmd(targetPath, lineNum)
 			if err != nil {
@@ -248,9 +260,17 @@ func (m projectPageModel) View() string {
 	sections = append(sections, barStr)
 
 	statsStyle := lipgloss.NewStyle().Foreground(m.theme.ColorTasks)
-	statsLine := fmt.Sprintf("(%d/%d) tasks complete", completed, total)
-	if !m.project.IsRecurring {
-		statsLine = fmt.Sprintf("(%d/%d) tasks complete   %d todos", completed, total, m.project.TodoCount)
+	var statsLine string
+	if m.width < 60 {
+		statsLine = fmt.Sprintf("(%d/%d)", completed, total)
+		if !m.project.IsRecurring {
+			statsLine = fmt.Sprintf("(%d/%d)   +%d", completed, total, m.project.TodoCount)
+		}
+	} else {
+		statsLine = fmt.Sprintf("(%d/%d) tasks complete", completed, total)
+		if !m.project.IsRecurring {
+			statsLine = fmt.Sprintf("(%d/%d) tasks complete   %d todos", completed, total, m.project.TodoCount)
+		}
 	}
 	sections = append(sections, statsStyle.Render(statsLine))
 

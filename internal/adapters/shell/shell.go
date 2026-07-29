@@ -76,3 +76,16 @@ func normalizeShellName(name string) string {
 		return "bash"
 	}
 }
+
+// FormatExitCommand formats a shell cd command for eval when exiting with a selected project path.
+func (a *Adapter) FormatExitCommand(dir string) string {
+	quoted := "'" + strings.ReplaceAll(dir, "'", "'\\''") + "'"
+	switch a.shellType {
+	case "fish":
+		return "cd " + quoted
+	case "nu", "nushell":
+		return "cd " + quoted
+	default:
+		return "cd " + quoted
+	}
+}

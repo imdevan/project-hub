@@ -57,6 +57,7 @@ type Config struct {
 	SyncInterval  int      `toml:"sync_interval"`
 	DailyReset    string   `toml:"daily_reset"`
 	WeeklyReset   string   `toml:"weekly_reset"`
+	ExitWithAlias bool     `toml:"exit_with_alias"`
 
 	// Rainbow settings
 	Rainbow interface{} `toml:"rainbow"`
@@ -130,6 +131,7 @@ func DefaultConfig() Config {
 		SyncInterval:  3600,
 		DailyReset:    "04:20",
 		WeeklyReset:   "monday",
+		ExitWithAlias: false,
 		Rainbow:       false,
 	}
 }
