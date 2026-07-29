@@ -14,6 +14,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
@@ -42,9 +43,11 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 
 	store, err := index.NewStore()
 	var pinnedMap map[string]int
+	var aliasMap map[string]string
 	if err == nil {
 		defer store.Close()
 		pinnedMap, _ = store.GetPinnedProjects()
+		aliasMap, _ = store.GetTmuxAliases()
 	}
 
 	// Check cache: if sync_interval > 0 and cache is fresh, load from cache
@@ -53,9 +56,14 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 	if store != nil && cfg.SyncInterval > 0 {
 		cached, scannedAt, cacheErr := store.LoadProjectsCache()
 		if cacheErr == nil && len(cached) > 0 && time.Since(scannedAt) < time.Duration(cfg.SyncInterval)*time.Second {
-			// Restore pinned state from DB (cache may be stale on pins)
+			// Restore pinned state and aliases from DB
 			projects = cached
 			usedCache = true
+			for i := range projects {
+				if alias, ok := aliasMap[projects[i].Path]; ok {
+					projects[i].TmuxAlias = alias
+				}
+			}
 		}
 	}
 
@@ -64,10 +72,11 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 		for i, dir := range dirs {
 			order, pinned := pinnedMap[dir]
 			proj := Project{
-				Name:     filepath.Base(dir),
-				Path:     dir,
-				Pinned:   pinned,
-				PinOrder: order,
+				Name:      filepath.Base(dir),
+				Path:      dir,
+				Pinned:    pinned,
+				PinOrder:  order,
+				TmuxAlias: aliasMap[dir],
 			}
 			projects[i] = proj
 		}
@@ -179,11 +188,22 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 		contentWidth = 16
 	}
 
-	titleText := proj.Project.Name
-	if proj.Project.Pinned {
-		titleText = titleText + " " + icon.Pin.String()
+	rawTitle := proj.Project.Name
+	aliasText := ""
+	if proj.Project.TmuxAlias != "" {
+		aliasText = " (" + proj.Project.TmuxAlias + ")"
 	}
-	title := truncateString(titleText, contentWidth)
+	pinText := ""
+	if proj.Project.Pinned {
+		pinText = " " + icon.Pin.String()
+	}
+
+	fullWidthNeeded := lipgloss.Width(rawTitle) + lipgloss.Width(aliasText) + lipgloss.Width(pinText)
+	if fullWidthNeeded > contentWidth {
+		availForTitle := contentWidth - lipgloss.Width(aliasText) - lipgloss.Width(pinText)
+		rawTitle = truncateString(rawTitle, availForTitle)
+	}
+
 	completed := proj.Project.CompletedTasks
 	total := proj.Project.TotalTasks
 	todoCount := proj.Project.TodoCount
@@ -250,6 +270,14 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 		}
 	}
 
+	titleLine := titleStyle.Render(rawTitle)
+	if aliasText != "" {
+		titleLine += pathStyle.Render(aliasText)
+	}
+	if pinText != "" {
+		titleLine += pinText
+	}
+
 	var statsText string
 	var todoText string
 	if m.Width() < 60 {
@@ -290,7 +318,7 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 		metadataLine = leftPart
 	}
 
-	content := titleStyle.Render(title) + "\n" + barStr + "\n" + metadataLine
+	content := titleLine + "\n" + barStr + "\n" + metadataLine
 
 	var rendered string
 	if isSelected {
@@ -392,6 +420,10 @@ type projectListModel struct {
 
 	activeView       string // "list" or "project"
 	projectPageModel *projectPageModel
+
+	aliasEditing    bool
+	aliasInput      textinput.Model
+	aliasTargetProj *Project
 }
 
 func (m projectListModel) Init() tea.Cmd {
@@ -423,9 +455,11 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.err == nil {
 			pinned := m.projects[msg.index].Pinned
 			pinOrder := m.projects[msg.index].PinOrder
+			tmuxAlias := m.projects[msg.index].TmuxAlias
 			m.projects[msg.index] = msg.proj
 			m.projects[msg.index].Pinned = pinned
 			m.projects[msg.index].PinOrder = pinOrder
+			m.projects[msg.index].TmuxAlias = tmuxAlias
 
 			sortProjects(m.projects)
 
@@ -488,6 +522,47 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return newPm, cmd
 		}
 
+		if m.aliasEditing {
+			switch msg.String() {
+			case "esc", "ctrl+c":
+				m.aliasEditing = false
+				m.aliasInput.Blur()
+				return m, nil
+
+			case "enter":
+				newAlias := strings.TrimSpace(m.aliasInput.Value())
+				if m.aliasTargetProj != nil {
+					targetPath := m.aliasTargetProj.Path
+					store, err := index.NewStore()
+					if err == nil {
+						_ = store.SetTmuxAlias(targetPath, newAlias)
+						store.Close()
+					}
+					for i := range m.projects {
+						if m.projects[i].Path == targetPath {
+							m.projects[i].TmuxAlias = newAlias
+							break
+						}
+					}
+					items := buildListItems(m.projects, m.config.ShowTaskless, m.config)
+					m.list.SetItems(items)
+					if newAlias != "" {
+						m.message = fmt.Sprintf("✔ Set tmux alias: %s", newAlias)
+					} else {
+						m.message = "✔ Cleared tmux alias"
+					}
+				}
+				m.aliasEditing = false
+				m.aliasInput.Blur()
+				return m, nil
+
+			default:
+				var cmd tea.Cmd
+				m.aliasInput, cmd = m.aliasInput.Update(msg)
+				return m, cmd
+			}
+		}
+
 		if m.list.FilterState() == list.Filtering {
 			switch msg.String() {
 			case "q", "esc", "ctrl+c":
@@ -501,6 +576,20 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "q", "esc", "ctrl+c":
 			return m, tea.Quit
+
+		case "a":
+			if item, ok := m.list.SelectedItem().(projectItem); ok {
+				m.aliasEditing = true
+				projCopy := item.Project
+				m.aliasTargetProj = &projCopy
+				ti := textinput.New()
+				ti.Prompt = "Tmux Alias: "
+				ti.Placeholder = ""
+				ti.SetValue(item.Project.TmuxAlias)
+				ti.Focus()
+				m.aliasInput = ti
+				return m, textinput.Blink
+			}
 
 		case "p":
 			if item, ok := m.list.SelectedItem().(projectItem); ok {
@@ -595,7 +684,7 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 
 
-				_, cmd := openTargetInEditor(m.config, item.Project.Name, item.Project.Path, targetPath, 1, func(msg string) {
+				_, cmd := openTargetInEditor(m.config, item.Project.TmuxWindowName(), item.Project.Path, targetPath, 1, func(msg string) {
 					m.message = msg
 				})
 				return m, cmd
@@ -634,7 +723,28 @@ func (m projectListModel) View() string {
 		}
 	}
 
-	return m.responsive.FullWidthFrameStyle(m.theme).Render(body)
+	baseView := m.responsive.FullWidthFrameStyle(m.theme).Render(body)
+
+	if m.aliasEditing && m.aliasTargetProj != nil {
+		modalContent := lipgloss.JoinVertical(lipgloss.Left,
+			lipgloss.NewStyle().Bold(true).Foreground(m.theme.Title).Render("Set Tmux Alias"),
+			lipgloss.NewStyle().Foreground(m.theme.Muted).Render("Project: "+m.aliasTargetProj.Name),
+			"",
+			m.aliasInput.View(),
+			"",
+			lipgloss.NewStyle().Foreground(m.theme.Muted).Render("press enter to save • esc to cancel"),
+		)
+		dialog := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(m.theme.Border).
+			Padding(1, 2).
+			Width(50).
+			Render(modalContent)
+
+		return ui.Center(baseView, dialog, m.screenW, m.screenH)
+	}
+
+	return baseView
 }
 
 func buildListItems(projects []Project, showTaskless bool, config domain.Config) []list.Item {
@@ -656,6 +766,10 @@ func (m projectListModel) allHelpKeys() []key.Binding {
 		key.NewBinding(
 			key.WithKeys("enter"),
 			key.WithHelp("enter/o", "open project"),
+		),
+		key.NewBinding(
+			key.WithKeys("a"),
+			key.WithHelp("a", "tmux alias"),
 		),
 		key.NewBinding(
 			key.WithKeys("p"),
@@ -704,7 +818,8 @@ func openTargetInEditor(cfg domain.Config, projName, projDir, targetPath string,
 			return nil, nil
 		}
 
-		c := exec.Command("tmux", "new-window", "-n", projName, "-c", projDir, editorCmdStr)
+		tmuxShellCmd := fmt.Sprintf("%s; exec ${SHELL:-sh}", editorCmdStr)
+		c := exec.Command("tmux", "new-window", "-n", projName, "-c", projDir, tmuxShellCmd)
 		if err := c.Run(); err != nil {
 			setErrorMsg(fmt.Sprintf("✗ failed to open tmux window: %s", err))
 			return nil, nil

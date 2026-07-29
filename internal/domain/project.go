@@ -38,6 +38,15 @@ type Project struct {
 	FtsFiles       []FtsFileDetail
 	Pinned         bool
 	PinOrder       int
+	TmuxAlias      string `json:"tmux_alias,omitempty"`
+}
+
+// TmuxWindowName returns TmuxAlias if set, otherwise Name.
+func (p Project) TmuxWindowName() string {
+	if p.TmuxAlias != "" {
+		return p.TmuxAlias
+	}
+	return p.Name
 }
 
 // Progress returns the completion percentage of tasks, or 0 if no tasks exist.

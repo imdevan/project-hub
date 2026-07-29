@@ -214,4 +214,20 @@ func TestParseFTSDetailedAndFindTodos(t *testing.T) {
 	}
 }
 
+func TestProjectTmuxWindowName(t *testing.T) {
+	proj := Project{
+		Name: "project-hub",
+	}
+
+	if name := proj.TmuxWindowName(); name != "project-hub" {
+		t.Errorf("Expected window name %q, got %q", "project-hub", name)
+	}
+
+	proj.TmuxAlias = "ph-alias"
+	if name := proj.TmuxWindowName(); name != "ph-alias" {
+		t.Errorf("Expected window name %q, got %q", "ph-alias", name)
+	}
+}
+
+
 

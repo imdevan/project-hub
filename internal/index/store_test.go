@@ -76,3 +76,46 @@ func TestStore_ProjectPinning(t *testing.T) {
 		t.Error("expected project to be unpinned")
 	}
 }
+
+func TestStore_TmuxAliases(t *testing.T) {
+	s := tempDB(t)
+
+	aliases, err := s.GetTmuxAliases()
+	if err != nil {
+		t.Fatalf("GetTmuxAliases error: %v", err)
+	}
+	if len(aliases) != 0 {
+		t.Errorf("expected 0 aliases initially, got %d", len(aliases))
+	}
+
+	path := "/path/to/myproj"
+	if err := s.SetTmuxAlias(path, "my-alias"); err != nil {
+		t.Fatalf("SetTmuxAlias error: %v", err)
+	}
+
+	aliases, err = s.GetTmuxAliases()
+	if err != nil {
+		t.Fatalf("GetTmuxAliases error: %v", err)
+	}
+	if got := aliases[path]; got != "my-alias" {
+		t.Errorf("expected alias %q, got %q", "my-alias", got)
+	}
+
+	// Update alias
+	if err := s.SetTmuxAlias(path, "updated-alias"); err != nil {
+		t.Fatalf("SetTmuxAlias update error: %v", err)
+	}
+	aliases, _ = s.GetTmuxAliases()
+	if got := aliases[path]; got != "updated-alias" {
+		t.Errorf("expected updated alias %q, got %q", "updated-alias", got)
+	}
+
+	// Clear alias
+	if err := s.SetTmuxAlias(path, ""); err != nil {
+		t.Fatalf("SetTmuxAlias clear error: %v", err)
+	}
+	aliases, _ = s.GetTmuxAliases()
+	if _, exists := aliases[path]; exists {
+		t.Error("expected alias to be removed when cleared")
+	}
+}

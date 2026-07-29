@@ -10,3 +10,8 @@
   - [x] 2.1.1 add `open_with_tmux` boolean configuration option to domain config, manager, and templates
   - [x] 2.1.2 add `BuildCommandString` helper to editor adapter for shell string formatting
   - [x] 2.1.3 update project opening logic in `ui.go` and `project_ui.go` to launch a detached `tmux new-window` with project name and directory when `open_with_tmux` is enabled
+- [x] 2.2 add add tmux alias
+  - [x] 2.2.1 hotkey `a` to add/rename tmux alias, persisting across syncs stored in db
+  - [x] 2.2.2 keep project name in list and detail view but use alias to name tmux window if present
+
+

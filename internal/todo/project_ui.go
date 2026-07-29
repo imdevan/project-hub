@@ -5,10 +5,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/project-hub/internal/domain"
+	"github.com/project-hub/internal/index"
 	"github.com/project-hub/internal/ui"
 	"github.com/project-hub/internal/utils"
 )
@@ -28,6 +30,8 @@ type projectPageModel struct {
 	selectedCmd     string
 	onBack          func() (tea.Model, tea.Cmd)
 	parentListModel tea.Model
+	aliasEditing    bool
+	aliasInput      textinput.Model
 }
 
 func newProjectPageModel(proj *Project, cfg domain.Config, theme ui.Theme, onBack func() (tea.Model, tea.Cmd), parent tea.Model) projectPageModel {
@@ -61,9 +65,55 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
+		if m.aliasEditing {
+			switch msg.String() {
+			case "esc", "ctrl+c":
+				m.aliasEditing = false
+				m.aliasInput.Blur()
+				return m, nil
+
+			case "enter":
+				newAlias := strings.TrimSpace(m.aliasInput.Value())
+				if m.project != nil {
+					targetPath := m.project.Path
+					store, err := index.NewStore()
+					if err == nil {
+						_ = store.SetTmuxAlias(targetPath, newAlias)
+						store.Close()
+					}
+					m.project.TmuxAlias = newAlias
+					if newAlias != "" {
+						m.message = fmt.Sprintf("✔ Set tmux alias: %s", newAlias)
+					} else {
+						m.message = "✔ Cleared tmux alias"
+					}
+				}
+				m.aliasEditing = false
+				m.aliasInput.Blur()
+				return m, nil
+
+			default:
+				var cmd tea.Cmd
+				m.aliasInput, cmd = m.aliasInput.Update(msg)
+				return m, cmd
+			}
+		}
+
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
+
+		case "a":
+			if m.project != nil {
+				m.aliasEditing = true
+				ti := textinput.New()
+				ti.Prompt = "Tmux Alias: "
+				ti.Placeholder = ""
+				ti.SetValue(m.project.TmuxAlias)
+				ti.Focus()
+				m.aliasInput = ti
+				return m, textinput.Blink
+			}
 
 		case "esc", "backspace":
 			if m.onBack != nil {
@@ -127,9 +177,7 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				targetPath = filepath.Join(m.project.Path, relPath)
 			}
 
-
-
-			_, cmd := openTargetInEditor(m.config, m.project.Name, m.project.Path, targetPath, lineNum, func(msg string) {
+			_, cmd := openTargetInEditor(m.config, m.project.TmuxWindowName(), m.project.Path, targetPath, lineNum, func(msg string) {
 				m.message = msg
 			})
 			return m, cmd
@@ -152,6 +200,9 @@ func (m projectPageModel) View() string {
 	pathStyle := lipgloss.NewStyle().Foreground(m.theme.Muted)
 
 	nameStr := titleStyle.Render(m.project.Name)
+	if m.project.TmuxAlias != "" {
+		nameStr += " " + pathStyle.Render("("+m.project.TmuxAlias+")")
+	}
 	locationStr := pathStyle.Render(m.project.Path)
 	
 	metaWidth := m.width - 4
@@ -306,7 +357,7 @@ func (m projectPageModel) View() string {
 
 	// Help footer & Pagination
 	footerStyle := lipgloss.NewStyle().Foreground(m.theme.Muted)
-	helpText := "j/k/↑/↓: navigate • tab/h/l: switch tab • o/enter: open • esc: back"
+	helpText := "j/k/↑/↓: navigate • tab/h/l: switch tab • a: tmux alias • o/enter: open • esc: back"
 	
 	var paginationText string
 	if m.activeTab == 0 {
@@ -351,8 +402,29 @@ func (m projectPageModel) View() string {
 			}
 		}
 	}
-	
-	return strings.Join(finalLines, "\n")
+
+	baseView := strings.Join(finalLines, "\n")
+
+	if m.aliasEditing {
+		modalContent := lipgloss.JoinVertical(lipgloss.Left,
+			lipgloss.NewStyle().Bold(true).Foreground(m.theme.Title).Render("Set Tmux Alias"),
+			lipgloss.NewStyle().Foreground(m.theme.Muted).Render("Project: "+m.project.Name),
+			"",
+			m.aliasInput.View(),
+			"",
+			lipgloss.NewStyle().Foreground(m.theme.Muted).Render("press enter to save • esc to cancel"),
+		)
+		dialog := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(m.theme.Border).
+			Padding(1, 2).
+			Width(50).
+			Render(modalContent)
+
+		return ui.Center(baseView, dialog, m.width, m.height)
+	}
+
+	return baseView
 }
 
 func (m projectPageModel) renderTodoBlock(todo TodoComment, isSelected bool) string {

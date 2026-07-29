@@ -77,6 +77,11 @@ func (s *Store) migrate() error {
 			path       TEXT PRIMARY KEY,
 			pinned_at  TEXT NOT NULL DEFAULT ''
 		);
+
+		CREATE TABLE IF NOT EXISTS project_aliases (
+			path       TEXT PRIMARY KEY,
+			tmux_alias TEXT NOT NULL DEFAULT ''
+		);
 	`)
 	if err != nil {
 		return fmt.Errorf("index: migrate: %w", err)
@@ -175,3 +180,38 @@ func (s *Store) GetPinnedProjects() (map[string]int, error) {
 	}
 	return pinned, nil
 }
+
+// SetTmuxAlias sets or clears the tmux alias for a project path.
+func (s *Store) SetTmuxAlias(path string, alias string) error {
+	if alias == "" {
+		_, err := s.db.Exec("DELETE FROM project_aliases WHERE path = ?", path)
+		if err != nil {
+			return fmt.Errorf("index: delete tmux alias: %w", err)
+		}
+		return nil
+	}
+	_, err := s.db.Exec("INSERT INTO project_aliases (path, tmux_alias) VALUES (?, ?) ON CONFLICT(path) DO UPDATE SET tmux_alias = excluded.tmux_alias", path, alias)
+	if err != nil {
+		return fmt.Errorf("index: set tmux alias: %w", err)
+	}
+	return nil
+}
+
+// GetTmuxAliases returns a map of project path to tmux alias.
+func (s *Store) GetTmuxAliases() (map[string]string, error) {
+	rows, err := s.db.Query("SELECT path, tmux_alias FROM project_aliases")
+	if err != nil {
+		return nil, fmt.Errorf("index: get tmux aliases: %w", err)
+	}
+	defer rows.Close()
+
+	aliases := make(map[string]string)
+	for rows.Next() {
+		var path, alias string
+		if err := rows.Scan(&path, &alias); err == nil {
+			aliases[path] = alias
+		}
+	}
+	return aliases, nil
+}
+
