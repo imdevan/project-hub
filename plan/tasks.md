@@ -3,16 +3,19 @@
 - remove task indexing
 - keep daily, weekly, md based tasks in ~/.config/super-todo/
 
-- [ ] 1.2 from config
+- [x] 1.2 from config
+
+```md
 # interactive_default = false
 # plain_text = false  # When true: output plain text confirmation messages and errors instead of styled output
 # confirm_delete = true
 # shell = "zsh"  # Options: bash, zsh, fish, nu
 # script_icons = {}
 # exit_with_alias
+```
+- [ ] 1.3 remove unused color variables
 
-remove unused color variables
-
+```md
 # headings = "15"
 # primary = "02"
 # secondary = "06"
@@ -25,10 +28,11 @@ remove unused color variables
 # border = "08"
 # error = "01"
 # success = "02"
+```
 
 validate they are not used before removing. 
 
-- [ ] 1.3 confirm all colors are defined via config. no magic color variables.
+- [ ] 1.4 confirm all colors are defined via config. no magic color variables.
 
 
 
