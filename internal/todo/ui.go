@@ -684,7 +684,7 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 
 
-				_, cmd := openTargetInEditor(m.config, item.Project.TmuxWindowName(), item.Project.Path, targetPath, 1, func(msg string) {
+				_, cmd := openTargetInEditor(m.config, item.Project.TmuxWindowName(), item.Project.Name, item.Project.Path, targetPath, 1, func(msg string) {
 					m.message = msg
 				})
 				return m, cmd
@@ -808,10 +808,23 @@ func quoteShellArg(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }
 
-func openTargetInEditor(cfg domain.Config, projName, projDir, targetPath string, line int, setErrorMsg func(string)) (tea.Model, tea.Cmd) {
+func openTargetInEditor(cfg domain.Config, projName, rawProjName, projDir, targetPath string, line int, setErrorMsg func(string)) (tea.Model, tea.Cmd) {
 	editorAdapter := editor.New(cfg.Editor)
 
 	if cfg.OpenWithTmux {
+		// 1. Try switching to window with target alias / window name if it exists
+		if exec.Command("tmux", "select-window", "-t", projName).Run() == nil {
+			return nil, nil
+		}
+
+		// 2. Try switching to window with raw project name if different and exists
+		if rawProjName != "" && rawProjName != projName {
+			if exec.Command("tmux", "select-window", "-t", rawProjName).Run() == nil {
+				return nil, nil
+			}
+		}
+
+		// 3. Create a new window if neither exists
 		editorCmdStr, err := editorAdapter.BuildCommandString(targetPath, line)
 		if err != nil {
 			setErrorMsg(fmt.Sprintf("✗ %s", err))

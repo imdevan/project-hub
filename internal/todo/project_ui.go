@@ -177,7 +177,7 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				targetPath = filepath.Join(m.project.Path, relPath)
 			}
 
-			_, cmd := openTargetInEditor(m.config, m.project.TmuxWindowName(), m.project.Path, targetPath, lineNum, func(msg string) {
+			_, cmd := openTargetInEditor(m.config, m.project.TmuxWindowName(), m.project.Name, m.project.Path, targetPath, lineNum, func(msg string) {
 				m.message = msg
 			})
 			return m, cmd
