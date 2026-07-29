@@ -1,4 +1,4 @@
-# super-todo
+# project-hub
 
 A hub for your projects.
 
@@ -10,14 +10,14 @@ A hub for your projects.
 ## Commands
 
 ```bash
-super-todo                 # Opens project and todo TUI list
-super-todo config          # View or edit configuration
-super-todo config init     # Generate default config file
-super-todo completion      # Generate shell completion scripts
+project-hub                 # Opens project and todo TUI list
+project-hub config          # View or edit configuration
+project-hub config init     # Generate default config file
+project-hub completion      # Generate shell completion scripts
 ```
 
 ## Configuration
 
-Configuration file location: `~/.config/super-todo/config.toml` (`$XDG_CONFIG_HOME/super-todo/config.toml`)
+Configuration file location: `~/.config/project-hub/config.toml` (`$XDG_CONFIG_HOME/project-hub/config.toml`)
 
 See [CONFIG.md](./CONFIG.md) for configuration details.

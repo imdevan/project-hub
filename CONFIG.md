@@ -2,7 +2,7 @@
 
 Configuration file location: `$XDG_CONFIG_HOME/project-hub/config.toml`
 
-Most likely `~/.config/super-todo/config.toml`
+Most likely `~/.config/project-hub/config.toml`
 
 ## Configuration Options
 
@@ -64,11 +64,11 @@ The following options can be set in your configuration file:
 To create a new configuration file with default values:
 
 ```bash
-super-todo config init
+project-hub config init
 ```
 
 To edit your configuration file:
 
 ```bash
-super-todo config
+project-hub config
 ```

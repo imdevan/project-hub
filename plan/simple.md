@@ -1,6 +1,6 @@
 # Gloal
 
-create super todo 
+create project-hub 
 
 a todo manager for all of my local projects. 
 
@@ -9,7 +9,7 @@ a todo manager for all of my local projects.
 
 This project is a fork of a another project I made for managing aliases. 
 
-That project has been renamed to super-todo. But the functionality is all still here. 
+That project has been renamed to project-hub. But the functionality is all still here. 
 
 It saves shell aliases to a file, and also indexes aliases listed in config. In order to quickly search for and show all of the users aliases. 
 
