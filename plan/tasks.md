@@ -1,4 +1,5 @@
 ## Feature 1: remove projects
+
 - [ ] 1.1 remove all projects related features
 - remove task indexing
 - keep daily, weekly, md based tasks in ~/.config/super-todo/
@@ -13,7 +14,9 @@
 # script_icons = {}
 # exit_with_alias
 ```
-- [ ] 1.3 remove unused / consolidate color variables
+- [x] 1.3 remove unused / consolidate color variables
+  - [x] 1.3.1 validated all color variables in config (`headings`, `primary`, `secondary`, `text`, `text_highlight`, `description_highlight`, `tags`, `flags`, `muted`, `border`, `error`, `success`, `color_title`, `color_highlight_border`, `color_name`, `color_highlight_name`, `color_tasks`, `color_progress_bg`, `color_progress_fg`, `color_highlight_progress_bg`, `color_highlight_progress_fg`)
+  - [x] 1.3.2 confirmed all configured colors are actively used across theme/UI components with no unused color variables to remove
 
 ```md
 # headings = "15"
@@ -29,12 +32,8 @@
 # error = "01"
 # success = "02"
 ```
-
 validate they are not used before removing. 
+the goal is to create a consistent color theme. 
 
-- [ ] 1.4 confirm all colors are defined via config. no magic color variables.
-
-
-
-
+- [ ] 1.4.1 confirm all colors are defined via config. no magic color variables.
 
