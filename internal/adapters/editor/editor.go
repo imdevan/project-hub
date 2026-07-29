@@ -56,6 +56,26 @@ func (a Adapter) BuildCmd(path string, line int) (*exec.Cmd, error) {
 	return exec.Command(base, args...), nil
 }
 
+// BuildCommandString returns the full command string for opening a file at a specific line.
+func (a Adapter) BuildCommandString(path string, line int) (string, error) {
+	cmd, err := a.BuildCmd(path, line)
+	if err != nil {
+		return "", err
+	}
+	var quoted []string
+	for _, arg := range cmd.Args {
+		quoted = append(quoted, quoteArg(arg))
+	}
+	return strings.Join(quoted, " "), nil
+}
+
+func quoteArg(arg string) string {
+	if strings.ContainsAny(arg, " \t\n\"'$`#&*()[]{}|;<>?") {
+		return "'" + strings.ReplaceAll(arg, "'", "'\"'\"'") + "'"
+	}
+	return arg
+}
+
 // Open launches the editor with the provided file path.
 func (a Adapter) Open(path string) error {
 	cmd, err := a.BuildCmd(path, 0)

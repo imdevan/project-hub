@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -594,19 +595,10 @@ func (m projectListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 
 
-				editorAdapter := editor.New(m.config.Editor)
-				c, err := editorAdapter.BuildCmd(targetPath, 1)
-				if err != nil {
-					m.message = fmt.Sprintf("✗ %s", err)
-					return m, nil
-				}
-
-				return m, tea.ExecProcess(c, func(err error) tea.Msg {
-					if err != nil {
-						return tea.Quit
-					}
-					return nil
+				_, cmd := openTargetInEditor(m.config, item.Project.Name, item.Project.Path, targetPath, 1, func(msg string) {
+					m.message = msg
 				})
+				return m, cmd
 			}
 		}
 	}
@@ -700,4 +692,36 @@ func sortProjects(projects []Project) {
 
 func quoteShellArg(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
+}
+
+func openTargetInEditor(cfg domain.Config, projName, projDir, targetPath string, line int, setErrorMsg func(string)) (tea.Model, tea.Cmd) {
+	editorAdapter := editor.New(cfg.Editor)
+
+	if cfg.OpenWithTmux {
+		editorCmdStr, err := editorAdapter.BuildCommandString(targetPath, line)
+		if err != nil {
+			setErrorMsg(fmt.Sprintf("✗ %s", err))
+			return nil, nil
+		}
+
+		c := exec.Command("tmux", "new-window", "-n", projName, "-c", projDir, editorCmdStr)
+		if err := c.Run(); err != nil {
+			setErrorMsg(fmt.Sprintf("✗ failed to open tmux window: %s", err))
+			return nil, nil
+		}
+		return nil, nil
+	}
+
+	c, err := editorAdapter.BuildCmd(targetPath, line)
+	if err != nil {
+		setErrorMsg(fmt.Sprintf("✗ %s", err))
+		return nil, nil
+	}
+
+	return nil, tea.ExecProcess(c, func(err error) tea.Msg {
+		if err != nil {
+			return tea.Quit
+		}
+		return nil
+	})
 }

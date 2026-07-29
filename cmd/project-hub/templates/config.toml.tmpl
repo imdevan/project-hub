@@ -12,7 +12,7 @@
 # fts_tasks = [{{range $index, $element := .FtsTasks}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
 # fts_subtasks = [{{range $index, $element := .FtsSubtasks}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
 # todo_tokens = [{{range $index, $element := .TodoTokens}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
-# cache_interval = {{.CacheInterval}}
+# open_with_tmux = {{.OpenWithTmux}}  # When true: opens project editor in a new tmux window named after the project
 # sync_interval = {{.SyncInterval}}  # Seconds between project scans (default: 3600 = 1 hour). Set to 0 to always rescan.
 
 # Display

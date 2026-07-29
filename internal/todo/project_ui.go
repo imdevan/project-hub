@@ -8,7 +8,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/project-hub/internal/adapters/editor"
 	"github.com/project-hub/internal/domain"
 	"github.com/project-hub/internal/ui"
 	"github.com/project-hub/internal/utils"
@@ -130,19 +129,10 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 
 
-			editorAdapter := editor.New(m.config.Editor)
-			c, err := editorAdapter.BuildCmd(targetPath, lineNum)
-			if err != nil {
-				m.message = fmt.Sprintf("✗ %s", err)
-				return m, nil
-			}
-
-			return m, tea.ExecProcess(c, func(err error) tea.Msg {
-				if err != nil {
-					return tea.Quit
-				}
-				return nil
+			_, cmd := openTargetInEditor(m.config, m.project.Name, m.project.Path, targetPath, lineNum, func(msg string) {
+				m.message = msg
 			})
+			return m, cmd
 		}
 	}
 
@@ -180,7 +170,7 @@ func (m projectPageModel) View() string {
 	// Progress bar
 	completed := m.project.CompletedTasks
 	total := m.project.TotalTasks
-	barWidth := m.width - 4
+	barWidth := m.width - 5
 	if barWidth < 20 {
 		barWidth = 20
 	}
@@ -419,7 +409,7 @@ func (m projectPageModel) renderTaskBlock(fts FtsFileDetail, isSelected bool) st
 
 	wrappedPath := utils.WrapText(fts.Path, contentWidth)
 
-	barW := contentWidth - 12
+	barW := contentWidth - 13
 	if barW < 10 {
 		barW = 10
 	}

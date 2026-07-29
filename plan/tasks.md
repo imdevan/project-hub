@@ -5,3 +5,8 @@
   - [x] 1.1.2 remove recurring tasks UI handling, spacebar toggle keybindings, and custom metadata rendering
   - [x] 1.1.3 remove `daily_reset` and `weekly_reset` configuration options and clean up domain/config models
 
+## Feature 2: open with tmux config
+- [x] 2.1 open_with_tmux if true will open project +nvim in a new tmux window with the name of the project
+  - [x] 2.1.1 add `open_with_tmux` boolean configuration option to domain config, manager, and templates
+  - [x] 2.1.2 add `BuildCommandString` helper to editor adapter for shell string formatting
+  - [x] 2.1.3 update project opening logic in `ui.go` and `project_ui.go` to launch a detached `tmux new-window` with project name and directory when `open_with_tmux` is enabled

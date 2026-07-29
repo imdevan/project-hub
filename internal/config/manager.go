@@ -147,6 +147,7 @@ type partialConfig struct {
 	ColorHighlightProgressFg *string              `toml:"color_highlight_progress_fg"`
 	ListSpacing              *string              `toml:"list_spacing"`
 	ShowTaskless             *bool                `toml:"show_taskless"`
+	OpenWithTmux             *bool                `toml:"open_with_tmux"`
 	IndexFolders             interface{}          `toml:"index_folders"`
 	CacheInterval            *int                 `toml:"cache_interval"`
 	HomeIcon                 *string              `toml:"home_icon"`
@@ -339,6 +340,9 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.ShowTaskless != nil {
 		config.ShowTaskless = *partial.ShowTaskless
+	}
+	if partial.OpenWithTmux != nil {
+		config.OpenWithTmux = *partial.OpenWithTmux
 	}
 	if partial.IndexFolders != nil {
 		switch v := partial.IndexFolders.(type) {

@@ -39,6 +39,7 @@ rainbow = false # Enable rainbow colors for projects (boolean true/false or arra
 # Todo & Project Settings
 ignore_folders = ["node_modules", "dist", "bin", ".git", ".vscode", "vendor", "build", "target", "pkg", ".venv"]
 show_taskless = false
+open_with_tmux = false
 fts_files = ["plan/tasks.md", "plan/simple.md", "todo.md", "tasks.md", "PLAN.md"]
 fts_features = ["## Feature ", "### Feature "]
 fts_tasks = ["- [ ] ", "* [ ] "]

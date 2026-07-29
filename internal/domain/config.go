@@ -53,6 +53,7 @@ type Config struct {
 	FtsSubtasks   []string `toml:"fts_subtasks"`
 	TodoTokens    []string `toml:"todo_tokens"`
 	ShowTaskless  bool     `toml:"show_taskless"`
+	OpenWithTmux  bool     `toml:"open_with_tmux"`
 	SyncInterval  int      `toml:"sync_interval"`
 
 	// Rainbow settings
@@ -119,6 +120,7 @@ func DefaultConfig() Config {
 		FtsSubtasks:   []string{"- [ ] ", "* [ ] "},
 		TodoTokens:    []string{"TODO", "FIXME"},
 		ShowTaskless:  false,
+		OpenWithTmux:  false,
 		SyncInterval:  3600,
 		Rainbow:       false,
 	}

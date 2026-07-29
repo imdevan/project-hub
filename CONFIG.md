@@ -55,6 +55,7 @@ The following options can be set in your configuration file:
 | `index_folders` | array | `[]` | Glob patterns to scan for projects to index (e.g. `["~/Projects/*"]`) |
 | `ignore_folders` | array | `["node_modules", ...]` | Directories to ignore when scanning for projects |
 | `show_taskless` | bool | `false` | When false, hide projects that don't have any tasks |
+| `open_with_tmux` | bool | `false` | When true, open project in a new tmux window named after the project |
 | `fts_files` | array | `["plan/tasks.md", ...]` | Target files for full text tasks |
 | `sync_interval` | int | `3600` | Seconds between project scans |
 
