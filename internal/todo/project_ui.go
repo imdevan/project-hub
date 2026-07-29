@@ -36,6 +36,8 @@ type projectPageModel struct {
 	confirm             *ui.ConfirmationModel
 	ignoreTargetRelPath string
 	ignoreTargetAbsPath string
+	ignoreIsUnignore    bool
+	showIgnored         bool
 }
 
 func (m projectPageModel) visibleFtsFiles() []FtsFileDetail {
@@ -44,7 +46,7 @@ func (m projectPageModel) visibleFtsFiles() []FtsFileDetail {
 		return visible
 	}
 	for _, fts := range m.project.FtsFiles {
-		if !fts.Ignored {
+		if m.showIgnored || !fts.Ignored {
 			visible = append(visible, fts)
 		}
 	}
@@ -92,19 +94,38 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.confirm = nil
 					if confirmed && m.ignoreTargetAbsPath != "" {
 						store, err := index.NewStore()
-						if err == nil {
-							_ = store.IgnoreTaskFile(m.ignoreTargetAbsPath)
-							store.Close()
-						}
-						if m.project != nil {
-							for i := range m.project.FtsFiles {
-								absP := filepath.Join(m.project.Path, m.project.FtsFiles[i].Path)
-								if absP == m.ignoreTargetAbsPath || m.project.FtsFiles[i].Path == m.ignoreTargetRelPath {
-									m.project.FtsFiles[i].Ignored = true
-									break
-								}
+						if m.ignoreIsUnignore {
+							if err == nil {
+								_ = store.UnignoreTaskFile(m.ignoreTargetAbsPath)
+								store.Close()
 							}
-							m.project.RecalculateTasks()
+							if m.project != nil {
+								for i := range m.project.FtsFiles {
+									absP := filepath.Join(m.project.Path, m.project.FtsFiles[i].Path)
+									if absP == m.ignoreTargetAbsPath || m.project.FtsFiles[i].Path == m.ignoreTargetRelPath {
+										m.project.FtsFiles[i].Ignored = false
+										break
+									}
+								}
+								m.project.RecalculateTasks()
+							}
+							m.message = fmt.Sprintf("✔ Unignored %s", m.ignoreTargetRelPath)
+						} else {
+							if err == nil {
+								_ = store.IgnoreTaskFile(m.ignoreTargetAbsPath)
+								store.Close()
+							}
+							if m.project != nil {
+								for i := range m.project.FtsFiles {
+									absP := filepath.Join(m.project.Path, m.project.FtsFiles[i].Path)
+									if absP == m.ignoreTargetAbsPath || m.project.FtsFiles[i].Path == m.ignoreTargetRelPath {
+										m.project.FtsFiles[i].Ignored = true
+										break
+									}
+								}
+								m.project.RecalculateTasks()
+							}
+							m.message = fmt.Sprintf("✔ Ignored %s", m.ignoreTargetRelPath)
 						}
 
 						visible := m.visibleFtsFiles()
@@ -113,8 +134,6 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						} else if len(visible) == 0 {
 							m.taskSelected = 0
 						}
-
-						m.message = fmt.Sprintf("✔ Ignored %s", m.ignoreTargetRelPath)
 					}
 					m.ignoreTargetAbsPath = ""
 					m.ignoreTargetRelPath = ""
@@ -185,6 +204,23 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, textinput.Blink
 			}
 
+		case "I":
+			if m.activeTab == 1 {
+				m.showIgnored = !m.showIgnored
+				if m.showIgnored {
+					m.message = "✔ Showing ignored task files"
+				} else {
+					m.message = "✔ Hiding ignored task files"
+				}
+				visible := m.visibleFtsFiles()
+				if m.taskSelected >= len(visible) && len(visible) > 0 {
+					m.taskSelected = len(visible) - 1
+				} else if len(visible) == 0 {
+					m.taskSelected = 0
+				}
+				return m, nil
+			}
+
 		case "i":
 			if m.activeTab == 1 {
 				visible := m.visibleFtsFiles()
@@ -193,7 +229,14 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					absPath := filepath.Join(m.project.Path, fts.Path)
 					m.ignoreTargetRelPath = fts.Path
 					m.ignoreTargetAbsPath = absPath
-					confirmModel := ui.NewConfirmationModel("Ignore Task File", fmt.Sprintf("Are you sure you want to ignore '%s'?", fts.Path), m.theme)
+					m.ignoreIsUnignore = fts.Ignored
+					title := "Ignore Task File"
+					prompt := fmt.Sprintf("Are you sure you want to ignore '%s'?", fts.Path)
+					if fts.Ignored {
+						title = "Unignore Task File"
+						prompt = fmt.Sprintf("Are you sure you want to unignore '%s'?", fts.Path)
+					}
+					confirmModel := ui.NewConfirmationModel(title, prompt, m.theme)
 					m.confirm = &confirmModel
 					m.confirmMode = true
 					return m, confirmModel.Init()
@@ -444,7 +487,7 @@ func (m projectPageModel) View() string {
 
 	// Help footer & Pagination
 	footerStyle := lipgloss.NewStyle().Foreground(m.theme.Muted)
-	helpText := "j/k/↑/↓: navigate • tab/h/l: switch tab • a: tmux alias • i: ignore file • o/enter: open • esc: back"
+	helpText := "j/k/↑/↓: navigate • tab/h/l: switch tab • a: tmux alias • i: ignore • I: show ignored • o/enter: open • esc: back"
 	
 	var paginationText string
 	if m.activeTab == 0 {
@@ -570,7 +613,12 @@ func (m projectPageModel) renderTaskBlock(fts FtsFileDetail, isSelected bool) st
 		titleStyle = titleStyle.Foreground(m.theme.Name)
 	}
 
-	wrappedPath := utils.WrapText(fts.Path, contentWidth)
+	displayPath := fts.Path
+	if fts.Ignored {
+		displayPath += " " + lipgloss.NewStyle().Foreground(m.theme.Muted).Render("[IGNORED]")
+	}
+
+	wrappedPath := utils.WrapText(displayPath, contentWidth)
 
 	barW := contentWidth - 13
 	if barW < 10 {
@@ -596,7 +644,11 @@ func (m projectPageModel) renderTaskBlock(fts FtsFileDetail, isSelected bool) st
 	fEmptyPart := fBgStyle.Render(strings.Repeat("░", barW-fFilled))
 	fBarStr := fFilledPart + fEmptyPart
 
-	statsStr := lipgloss.NewStyle().Foreground(m.theme.Tasks).Render(fmt.Sprintf("(%d/%d) tasks complete", fts.CompletedTasks, fts.TotalTasks))
+	statsText := fmt.Sprintf("(%d/%d) tasks complete", fts.CompletedTasks, fts.TotalTasks)
+	if fts.Ignored {
+		statsText += " (ignored)"
+	}
+	statsStr := lipgloss.NewStyle().Foreground(m.theme.Tasks).Render(statsText)
 
 	var lines []string
 	for _, line := range wrappedPath {
