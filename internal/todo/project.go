@@ -1,6 +1,6 @@
 package todo
 
-import "github.com/super-todo/internal/domain"
+import "github.com/project-hub/internal/domain"
 
 // TaskItem represents a single parsed task or subtask.
 type TaskItem = domain.TaskItem

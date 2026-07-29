@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/super-todo/internal/domain"
+	"github.com/project-hub/internal/domain"
 )
 
 func TestRenderConfigTemplate(t *testing.T) {

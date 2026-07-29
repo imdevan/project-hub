@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/super-todo/internal/domain"
-	"github.com/super-todo/internal/utils"
+	"github.com/project-hub/internal/domain"
+	"github.com/project-hub/internal/utils"
 )
 
 // ReadYAMLName attempts to parse a top front-matter YAML block (between --- markers) and extract the "name" field.

@@ -5,7 +5,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/super-todo/internal/domain"
+	"github.com/project-hub/internal/domain"
 )
 
 // Theme holds configurable colors for UI output.

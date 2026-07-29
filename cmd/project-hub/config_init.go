@@ -10,11 +10,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/super-todo/internal/adapters/editor"
-	"github.com/super-todo/internal/config"
-	"github.com/super-todo/internal/domain"
-	"github.com/super-todo/internal/flags"
-	"github.com/super-todo/internal/utils"
+	"github.com/project-hub/internal/adapters/editor"
+	"github.com/project-hub/internal/config"
+	"github.com/project-hub/internal/domain"
+	"github.com/project-hub/internal/flags"
+	"github.com/project-hub/internal/utils"
 )
 
 type configInitOptions struct {

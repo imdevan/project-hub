@@ -11,7 +11,7 @@ import (
 newCompletionCmd creates the completion command for generating shell completion scripts.
 
 The completion command generates shell completion scripts for various shells.
-This enables tab-completion for super-todo commands and super-todo.
+This enables tab-completion for project-hub commands and project-hub.
 
 Supported shells:
   - bash
@@ -22,16 +22,16 @@ Supported shells:
 Examples:
 
 	# Generate bash completion
-	super-todo completion bash > /etc/bash_completion.d/super-todo
+	project-hub completion bash > /etc/bash_completion.d/project-hub
 
 	# Generate zsh completion
-	super-todo completion zsh > ~/.zsh/completion/_super-todo
+	project-hub completion zsh > ~/.zsh/completion/_project-hub
 
 	# Generate fish completion
-	super-todo completion fish > ~/.config/fish/completions/super-todo.fish
+	project-hub completion fish > ~/.config/fish/completions/project-hub.fish
 
 	# Generate powershell completion
-	super-todo completion powershell > super-todo.ps1
+	project-hub completion powershell > project-hub.ps1
 */
 func newCompletionCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -68,9 +68,9 @@ func runCompletion(cmd *cobra.Command, args []string) error {
 func completionHelp() string {
 	return strings.Join([]string{
 		"Examples:",
-		"  super-todo completion bash > /etc/bash_completion.d/super-todo",
-		"  super-todo completion zsh > ~/.zsh/completion/_super-todo",
-		"  super-todo completion fish > ~/.config/fish/completions/super-todo.fish",
-		"  super-todo completion powershell > super-todo.ps1",
+		"  project-hub completion bash > /etc/bash_completion.d/project-hub",
+		"  project-hub completion zsh > ~/.zsh/completion/_project-hub",
+		"  project-hub completion fish > ~/.config/fish/completions/project-hub.fish",
+		"  project-hub completion powershell > project-hub.ps1",
 	}, "\n")
 }

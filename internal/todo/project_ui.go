@@ -8,11 +8,11 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/super-todo/internal/adapters/editor"
-	"github.com/super-todo/internal/adapters/icon"
-	"github.com/super-todo/internal/domain"
-	"github.com/super-todo/internal/ui"
-	"github.com/super-todo/internal/utils"
+	"github.com/project-hub/internal/adapters/editor"
+	"github.com/project-hub/internal/adapters/icon"
+	"github.com/project-hub/internal/domain"
+	"github.com/project-hub/internal/ui"
+	"github.com/project-hub/internal/utils"
 )
 
 type projectPageModel struct {

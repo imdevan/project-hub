@@ -9,8 +9,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/super-todo/internal/adapters/tty"
-	"github.com/super-todo/internal/ui"
+	"github.com/project-hub/internal/adapters/tty"
+	"github.com/project-hub/internal/ui"
 )
 
 type scanResultMsg struct {

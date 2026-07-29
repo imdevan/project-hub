@@ -3,7 +3,7 @@ package index
 import (
 	"time"
 
-	"github.com/super-todo/internal/domain"
+	"github.com/project-hub/internal/domain"
 )
 
 // Indexer is a stub indexer for project scanning.

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/super-todo/internal/package"
+	"github.com/project-hub/internal/package"
 )
 
 // XDGConfigHome returns the config home directory with sensible defaults.

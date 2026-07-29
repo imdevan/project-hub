@@ -8,8 +8,8 @@ import (
 
 	"github.com/pelletier/go-toml/v2"
 
-	"github.com/super-todo/internal/domain"
-	"github.com/super-todo/internal/utils"
+	"github.com/project-hub/internal/domain"
+	"github.com/project-hub/internal/utils"
 )
 
 // ManagerImpl loads and saves configuration files.

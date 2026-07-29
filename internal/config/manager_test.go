@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/super-todo/internal/domain"
-	"github.com/super-todo/internal/utils"
+	"github.com/project-hub/internal/domain"
+	"github.com/project-hub/internal/utils"
 )
 
 func TestManagerLoadsDefaults(t *testing.T) {

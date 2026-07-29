@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/super-todo/internal/domain"
+	"github.com/project-hub/internal/domain"
 )
 
 // ParseFTSContent parses markdown content and returns the number of completed and total tasks.

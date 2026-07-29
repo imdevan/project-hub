@@ -2,7 +2,7 @@
 # ================================================================================
 set shell := ["zsh", "-cu"]
 
-PACKAGE := "super-todo"
+PACKAGE := "project-hub"
 PACKAGE_BIN := "./bin/" + PACKAGE
 PACKAGE_CMD := "./cmd/" + PACKAGE
 

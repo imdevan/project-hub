@@ -1,4 +1,4 @@
-module github.com/super-todo
+module github.com/project-hub
 
 go 1.26
 

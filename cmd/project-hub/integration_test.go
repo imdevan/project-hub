@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/super-todo/internal/testutil"
+	"github.com/project-hub/internal/testutil"
 )
 
 func TestIntegration_Version(t *testing.T) {

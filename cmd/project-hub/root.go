@@ -8,12 +8,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/super-todo/internal/config"
-	"github.com/super-todo/internal/flags"
-	"github.com/super-todo/internal/index"
-	pkg "github.com/super-todo/internal/package"
-	"github.com/super-todo/internal/todo"
-	"github.com/super-todo/internal/ui"
+	"github.com/project-hub/internal/config"
+	"github.com/project-hub/internal/flags"
+	"github.com/project-hub/internal/index"
+	pkg "github.com/project-hub/internal/package"
+	"github.com/project-hub/internal/todo"
+	"github.com/project-hub/internal/ui"
 )
 
 // Metadata loaded from package.toml at build time

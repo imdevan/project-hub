@@ -1,6 +1,6 @@
 package config
 
-import "github.com/super-todo/internal/domain"
+import "github.com/project-hub/internal/domain"
 
 // Load returns the config for cwd. Uses overridePath when non-empty; falls back
 // to DefaultConfig on error.

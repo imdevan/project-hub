@@ -5,7 +5,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/super-todo/internal/adapters/icon"
+	"github.com/project-hub/internal/adapters/icon"
 )
 
 // CanceledMessage renders a cancel message with error styling when not plain text.

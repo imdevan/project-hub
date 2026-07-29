@@ -1,6 +1,6 @@
 # super-todo
 
-A super todo manager CLI.
+A hub for your projects.
 
 ## Features
 

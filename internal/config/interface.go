@@ -1,6 +1,6 @@
 package config
 
-import "github.com/super-todo/internal/domain"
+import "github.com/project-hub/internal/domain"
 
 // Manager describes configuration persistence behavior.
 type Manager interface {
