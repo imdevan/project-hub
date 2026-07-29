@@ -15,3 +15,10 @@
   - [x] 2.2.2 keep project name in list and detail view but use alias to name tmux window if present
 
 
+## Feature 3: ignore task file
+- [x] 3.1 a user can ignore a given projects task file
+  - [x] 3.1.1 hotkey `i` on highlighted task file in tasks tab to ignore file
+  - [x] 3.1.2 prompt user to confirm choice using `internal/ui` confirmation element
+  - [x] 3.1.3 ignored task file is hidden from project task list and omitted from total/completed task counts
+- [ ] 3.2 a user can hotkey shift+I to see ignored task flies
+

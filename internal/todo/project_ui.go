@@ -26,18 +26,44 @@ type projectPageModel struct {
 	todoScroll      int
 	taskSelected    int
 	taskScroll      int
-	message         string
-	selectedCmd     string
-	onBack          func() (tea.Model, tea.Cmd)
-	parentListModel tea.Model
-	aliasEditing    bool
-	aliasInput      textinput.Model
+	message             string
+	selectedCmd         string
+	onBack              func() (tea.Model, tea.Cmd)
+	parentListModel     tea.Model
+	aliasEditing        bool
+	aliasInput          textinput.Model
+	confirmMode         bool
+	confirm             *ui.ConfirmationModel
+	ignoreTargetRelPath string
+	ignoreTargetAbsPath string
+}
+
+func (m projectPageModel) visibleFtsFiles() []FtsFileDetail {
+	var visible []FtsFileDetail
+	if m.project == nil {
+		return visible
+	}
+	for _, fts := range m.project.FtsFiles {
+		if !fts.Ignored {
+			visible = append(visible, fts)
+		}
+	}
+	return visible
 }
 
 func newProjectPageModel(proj *Project, cfg domain.Config, theme ui.Theme, onBack func() (tea.Model, tea.Cmd), parent tea.Model) projectPageModel {
 	activeTab := 0
-	if len(proj.Todos) == 0 && len(proj.FtsFiles) > 0 {
-		activeTab = 1
+	hasVisibleTasks := false
+	if proj != nil {
+		for _, f := range proj.FtsFiles {
+			if !f.Ignored {
+				hasVisibleTasks = true
+				break
+			}
+		}
+		if len(proj.Todos) == 0 && hasVisibleTasks {
+			activeTab = 1
+		}
 	}
 
 	return projectPageModel{
@@ -55,6 +81,50 @@ func (m projectPageModel) Init() tea.Cmd {
 }
 
 func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.confirmMode && m.confirm != nil {
+		updated, cmd := m.confirm.Update(msg)
+		if confirmModel, ok := updated.(ui.ConfirmationModel); ok {
+			m.confirm = &confirmModel
+			if cmd != nil {
+				if _, isQuit := cmd().(tea.QuitMsg); isQuit {
+					confirmed := m.confirm.ChoiceValue()
+					m.confirmMode = false
+					m.confirm = nil
+					if confirmed && m.ignoreTargetAbsPath != "" {
+						store, err := index.NewStore()
+						if err == nil {
+							_ = store.IgnoreTaskFile(m.ignoreTargetAbsPath)
+							store.Close()
+						}
+						if m.project != nil {
+							for i := range m.project.FtsFiles {
+								absP := filepath.Join(m.project.Path, m.project.FtsFiles[i].Path)
+								if absP == m.ignoreTargetAbsPath || m.project.FtsFiles[i].Path == m.ignoreTargetRelPath {
+									m.project.FtsFiles[i].Ignored = true
+									break
+								}
+							}
+							m.project.RecalculateTasks()
+						}
+
+						visible := m.visibleFtsFiles()
+						if m.taskSelected >= len(visible) && len(visible) > 0 {
+							m.taskSelected = len(visible) - 1
+						} else if len(visible) == 0 {
+							m.taskSelected = 0
+						}
+
+						m.message = fmt.Sprintf("✔ Ignored %s", m.ignoreTargetRelPath)
+					}
+					m.ignoreTargetAbsPath = ""
+					m.ignoreTargetRelPath = ""
+					return m, nil
+				}
+			}
+		}
+		return m, cmd
+	}
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -115,6 +185,21 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, textinput.Blink
 			}
 
+		case "i":
+			if m.activeTab == 1 {
+				visible := m.visibleFtsFiles()
+				if len(visible) > 0 && m.taskSelected >= 0 && m.taskSelected < len(visible) {
+					fts := visible[m.taskSelected]
+					absPath := filepath.Join(m.project.Path, fts.Path)
+					m.ignoreTargetRelPath = fts.Path
+					m.ignoreTargetAbsPath = absPath
+					confirmModel := ui.NewConfirmationModel("Ignore Task File", fmt.Sprintf("Are you sure you want to ignore '%s'?", fts.Path), m.theme)
+					m.confirm = &confirmModel
+					m.confirmMode = true
+					return m, confirmModel.Init()
+				}
+			}
+
 		case "esc", "backspace":
 			if m.onBack != nil {
 				return m.onBack()
@@ -148,7 +233,7 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.todoSelected++
 				}
 			} else {
-				maxItems := len(m.project.FtsFiles)
+				maxItems := len(m.visibleFtsFiles())
 				if m.taskSelected < maxItems-1 {
 					m.taskSelected++
 				}
@@ -169,10 +254,11 @@ func (m projectPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				targetPath = filepath.Join(m.project.Path, relPath)
 				lineNum = todo.Line
 			} else {
-				if len(m.project.FtsFiles) == 0 {
+				visible := m.visibleFtsFiles()
+				if len(visible) == 0 || m.taskSelected < 0 || m.taskSelected >= len(visible) {
 					return m, nil
 				}
-				fts := m.project.FtsFiles[m.taskSelected]
+				fts := visible[m.taskSelected]
 				relPath = fts.Path
 				targetPath = filepath.Join(m.project.Path, relPath)
 			}
@@ -250,8 +336,9 @@ func (m projectPageModel) View() string {
 	sections = append(sections, "") // blank line separator
 
 	// 3. Tabs bar
+	visibleFts := m.visibleFtsFiles()
 	todoLabel := fmt.Sprintf("TODOs (%d)", len(m.project.Todos))
-	taskLabel := fmt.Sprintf("Tasks (%d)", len(m.project.FtsFiles))
+	taskLabel := fmt.Sprintf("Tasks (%d)", len(visibleFts))
 	var tabs []string
 	
 	if m.activeTab == 0 {
@@ -290,7 +377,7 @@ func (m projectPageModel) View() string {
 			})
 		}
 	} else {
-		for i, fts := range m.project.FtsFiles {
+		for i, fts := range visibleFts {
 			block := m.renderTaskBlock(fts, i == m.taskSelected)
 			blockLines := strings.Split(block, "\n")
 			blocks = append(blocks, renderedBlock{
@@ -357,7 +444,7 @@ func (m projectPageModel) View() string {
 
 	// Help footer & Pagination
 	footerStyle := lipgloss.NewStyle().Foreground(m.theme.Muted)
-	helpText := "j/k/↑/↓: navigate • tab/h/l: switch tab • a: tmux alias • o/enter: open • esc: back"
+	helpText := "j/k/↑/↓: navigate • tab/h/l: switch tab • a: tmux alias • i: ignore file • o/enter: open • esc: back"
 	
 	var paginationText string
 	if m.activeTab == 0 {
@@ -366,8 +453,8 @@ func (m projectPageModel) View() string {
 			paginationText = "item 0 of 0"
 		}
 	} else {
-		paginationText = fmt.Sprintf("item %d of %d", m.taskSelected+1, len(m.project.FtsFiles))
-		if len(m.project.FtsFiles) == 0 {
+		paginationText = fmt.Sprintf("item %d of %d", m.taskSelected+1, len(visibleFts))
+		if len(visibleFts) == 0 {
 			paginationText = "item 0 of 0"
 		}
 	}
@@ -404,6 +491,10 @@ func (m projectPageModel) View() string {
 	}
 
 	baseView := strings.Join(finalLines, "\n")
+
+	if m.confirmMode && m.confirm != nil {
+		return ui.Center(baseView, m.confirm.View(), m.width, m.height)
+	}
 
 	if m.aliasEditing {
 		modalContent := lipgloss.JoinVertical(lipgloss.Left,

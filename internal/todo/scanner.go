@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/project-hub/internal/domain"
+	"github.com/project-hub/internal/index"
 )
 
 // Scanner handles finding projects and scanning their tasks and todos.
@@ -161,6 +162,12 @@ func (s *Scanner) ScanProject(dir string) (Project, error) {
 		ftsMap[strings.ToLower(ftsFile)] = true
 	}
 
+	ignoredFilesMap := make(map[string]bool)
+	if st, err := index.NewStore(); err == nil {
+		ignoredFilesMap, _ = st.GetIgnoredTaskFiles()
+		st.Close()
+	}
+
 	err = filepath.Walk(absDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return nil // skip errors
@@ -199,13 +206,17 @@ func (s *Scanner) ScanProject(dir string) (Project, error) {
 		if isFTS {
 			completed, total, features, err := ParseFTSDetailed(path, s.config)
 			if err == nil {
-				proj.CompletedTasks += completed
-				proj.TotalTasks += total
+				isIgnored := ignoredFilesMap[path]
+				if !isIgnored {
+					proj.CompletedTasks += completed
+					proj.TotalTasks += total
+				}
 				proj.FtsFiles = append(proj.FtsFiles, FtsFileDetail{
 					Path:           relPath,
 					CompletedTasks: completed,
 					TotalTasks:     total,
 					Features:       features,
+					Ignored:        isIgnored,
 				})
 			}
 		} else {

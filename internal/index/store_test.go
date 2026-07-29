@@ -119,3 +119,49 @@ func TestStore_TmuxAliases(t *testing.T) {
 		t.Error("expected alias to be removed when cleared")
 	}
 }
+
+func TestStore_IgnoredTaskFiles(t *testing.T) {
+	s := tempDB(t)
+
+	taskPath := "/path/to/project/plan/tasks.md"
+
+	ignored, err := s.IsTaskFileIgnored(taskPath)
+	if err != nil {
+		t.Fatalf("IsTaskFileIgnored error: %v", err)
+	}
+	if ignored {
+		t.Error("expected task file to not be ignored initially")
+	}
+
+	if err := s.IgnoreTaskFile(taskPath); err != nil {
+		t.Fatalf("IgnoreTaskFile error: %v", err)
+	}
+
+	ignored, err = s.IsTaskFileIgnored(taskPath)
+	if err != nil {
+		t.Fatalf("IsTaskFileIgnored error: %v", err)
+	}
+	if !ignored {
+		t.Error("expected task file to be ignored")
+	}
+
+	allIgnored, err := s.GetIgnoredTaskFiles()
+	if err != nil {
+		t.Fatalf("GetIgnoredTaskFiles error: %v", err)
+	}
+	if !allIgnored[taskPath] {
+		t.Error("expected taskPath to be in GetIgnoredTaskFiles map")
+	}
+
+	if err := s.UnignoreTaskFile(taskPath); err != nil {
+		t.Fatalf("UnignoreTaskFile error: %v", err)
+	}
+
+	ignored, err = s.IsTaskFileIgnored(taskPath)
+	if err != nil {
+		t.Fatalf("IsTaskFileIgnored error: %v", err)
+	}
+	if ignored {
+		t.Error("expected task file to be unignored")
+	}
+}

@@ -44,10 +44,12 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 	store, err := index.NewStore()
 	var pinnedMap map[string]int
 	var aliasMap map[string]string
+	var ignoredMap map[string]bool
 	if err == nil {
 		defer store.Close()
 		pinnedMap, _ = store.GetPinnedProjects()
 		aliasMap, _ = store.GetTmuxAliases()
+		ignoredMap, _ = store.GetIgnoredTaskFiles()
 	}
 
 	// Check cache: if sync_interval > 0 and cache is fresh, load from cache
@@ -56,13 +58,18 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 	if store != nil && cfg.SyncInterval > 0 {
 		cached, scannedAt, cacheErr := store.LoadProjectsCache()
 		if cacheErr == nil && len(cached) > 0 && time.Since(scannedAt) < time.Duration(cfg.SyncInterval)*time.Second {
-			// Restore pinned state and aliases from DB
+			// Restore pinned state, aliases, and ignored task files from DB
 			projects = cached
 			usedCache = true
 			for i := range projects {
 				if alias, ok := aliasMap[projects[i].Path]; ok {
 					projects[i].TmuxAlias = alias
 				}
+				for j := range projects[i].FtsFiles {
+					absPath := filepath.Join(projects[i].Path, projects[i].FtsFiles[j].Path)
+					projects[i].FtsFiles[j].Ignored = ignoredMap[absPath]
+				}
+				projects[i].RecalculateTasks()
 			}
 		}
 	}

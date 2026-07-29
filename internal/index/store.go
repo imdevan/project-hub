@@ -82,6 +82,10 @@ func (s *Store) migrate() error {
 			path       TEXT PRIMARY KEY,
 			tmux_alias TEXT NOT NULL DEFAULT ''
 		);
+
+		CREATE TABLE IF NOT EXISTS ignored_task_files (
+			path       TEXT PRIMARY KEY
+		);
 	`)
 	if err != nil {
 		return fmt.Errorf("index: migrate: %w", err)
@@ -214,4 +218,51 @@ func (s *Store) GetTmuxAliases() (map[string]string, error) {
 	}
 	return aliases, nil
 }
+
+// IgnoreTaskFile marks a task file (by absolute path) as ignored.
+func (s *Store) IgnoreTaskFile(path string) error {
+	_, err := s.db.Exec("INSERT INTO ignored_task_files (path) VALUES (?) ON CONFLICT(path) DO NOTHING", path)
+	if err != nil {
+		return fmt.Errorf("index: ignore task file: %w", err)
+	}
+	return nil
+}
+
+// UnignoreTaskFile removes a task file path from the ignored list.
+func (s *Store) UnignoreTaskFile(path string) error {
+	_, err := s.db.Exec("DELETE FROM ignored_task_files WHERE path = ?", path)
+	if err != nil {
+		return fmt.Errorf("index: unignore task file: %w", err)
+	}
+	return nil
+}
+
+// GetIgnoredTaskFiles returns a map of ignored task file absolute paths.
+func (s *Store) GetIgnoredTaskFiles() (map[string]bool, error) {
+	rows, err := s.db.Query("SELECT path FROM ignored_task_files")
+	if err != nil {
+		return nil, fmt.Errorf("index: get ignored task files: %w", err)
+	}
+	defer rows.Close()
+
+	ignored := make(map[string]bool)
+	for rows.Next() {
+		var path string
+		if err := rows.Scan(&path); err == nil {
+			ignored[path] = true
+		}
+	}
+	return ignored, nil
+}
+
+// IsTaskFileIgnored checks if a task file path is ignored.
+func (s *Store) IsTaskFileIgnored(path string) (bool, error) {
+	var count int
+	err := s.db.QueryRow("SELECT COUNT(*) FROM ignored_task_files WHERE path = ?", path).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("index: check ignored task file: %w", err)
+	}
+	return count > 0, nil
+}
+
 
