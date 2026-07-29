@@ -13,6 +13,7 @@ default_sort_by = "newest"  # Options: newest, oldest, a-z, z-a
 list_spacing = "space" # Options: compact, tight, space
 
 # Colors
+[colors]
 headings = "15"
 primary = "02"
 secondary = "06"
@@ -24,15 +25,15 @@ flags = "12"
 muted = "08"
 border = "08"
 error = "01"
-color_title = "02"
-color_highlight_border = "02"
-color_name = "07"
-color_highlight_name = "06"
-color_tasks = "06"
-color_progress_bg = "08"
-color_progress_fg = "02"
-color_highlight_progress_bg = "08"
-color_highlight_progress_fg = "06"
+title = "02"
+highlight_border = "02"
+name = "07"
+highlight_name = "06"
+tasks = "06"
+progress_bg = "08"
+progress_fg = "02"
+highlight_progress_bg = "08"
+highlight_progress_fg = "06"
 rainbow = false # Enable rainbow colors for projects (boolean true/false or array of color hex codes)
 
 # Todo & Project Settings

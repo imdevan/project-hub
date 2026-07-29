@@ -205,7 +205,7 @@ func (m projectPageModel) View() string {
 	sections = append(sections, "")
 
 	// 2. Project Metadata block
-	titleStyle := lipgloss.NewStyle().Bold(true).Foreground(m.theme.ColorTitle)
+	titleStyle := lipgloss.NewStyle().Bold(true).Foreground(m.theme.Title)
 	pathStyle := lipgloss.NewStyle().Foreground(m.theme.Muted)
 
 	nameStr := titleStyle.Render(m.project.Name)
@@ -240,14 +240,14 @@ func (m projectPageModel) View() string {
 		filled = (completed * barWidth) / total
 	}
 	
-	fgStyle := lipgloss.NewStyle().Foreground(m.theme.ColorProgressFg)
-	bgStyle := lipgloss.NewStyle().Foreground(m.theme.ColorProgressBg)
+	fgStyle := lipgloss.NewStyle().Foreground(m.theme.ProgressFg)
+	bgStyle := lipgloss.NewStyle().Foreground(m.theme.ProgressBg)
 	filledPart := fgStyle.Render(strings.Repeat("█", filled))
 	emptyPart := bgStyle.Render(strings.Repeat("░", barWidth-filled))
 	barStr := filledPart + emptyPart
 	sections = append(sections, barStr)
 
-	statsStyle := lipgloss.NewStyle().Foreground(m.theme.ColorTasks)
+	statsStyle := lipgloss.NewStyle().Foreground(m.theme.Tasks)
 	var statsLine string
 	if m.width < 60 {
 		statsLine = fmt.Sprintf("(%d/%d)", completed, total)
@@ -271,11 +271,11 @@ func (m projectPageModel) View() string {
 		var tabs []string
 		
 		if m.activeTab == 0 {
-			tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.ColorHighlightName).Bold(true).Underline(true).Render(todoLabel))
+			tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.HighlightName).Bold(true).Underline(true).Render(todoLabel))
 			tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.Muted).Render(taskLabel))
 		} else {
 			tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.Muted).Render(todoLabel))
-			tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.ColorHighlightName).Bold(true).Underline(true).Render(taskLabel))
+			tabs = append(tabs, lipgloss.NewStyle().Foreground(m.theme.HighlightName).Bold(true).Underline(true).Render(taskLabel))
 		}
 		
 		sections = append(sections, "  "+strings.Join(tabs, "    "))
@@ -467,9 +467,9 @@ func (m projectPageModel) renderTodoBlock(todo TodoComment, isSelected bool) str
 
 	titleStyle := lipgloss.NewStyle().Bold(true)
 	if isSelected {
-		titleStyle = titleStyle.Foreground(m.theme.ColorHighlightName)
+		titleStyle = titleStyle.Foreground(m.theme.HighlightName)
 	} else {
-		titleStyle = titleStyle.Foreground(m.theme.ColorName)
+		titleStyle = titleStyle.Foreground(m.theme.Name)
 	}
 
 	locationStyle := lipgloss.NewStyle().Foreground(m.theme.Muted)
@@ -501,9 +501,9 @@ func (m projectPageModel) renderTaskBlock(fts FtsFileDetail, isSelected bool) st
 
 	titleStyle := lipgloss.NewStyle().Bold(true)
 	if isSelected {
-		titleStyle = titleStyle.Foreground(m.theme.ColorHighlightName)
+		titleStyle = titleStyle.Foreground(m.theme.HighlightName)
 	} else {
-		titleStyle = titleStyle.Foreground(m.theme.ColorName)
+		titleStyle = titleStyle.Foreground(m.theme.Name)
 	}
 
 	wrappedPath := utils.WrapText(fts.Path, contentWidth)
@@ -521,18 +521,18 @@ func (m projectPageModel) renderTaskBlock(fts FtsFileDetail, isSelected bool) st
 		fFilled = (fts.CompletedTasks * barW) / fts.TotalTasks
 	}
 	
-	fFgStyle := lipgloss.NewStyle().Foreground(m.theme.ColorProgressFg)
-	fBgStyle := lipgloss.NewStyle().Foreground(m.theme.ColorProgressBg)
+	fFgStyle := lipgloss.NewStyle().Foreground(m.theme.ProgressFg)
+	fBgStyle := lipgloss.NewStyle().Foreground(m.theme.ProgressBg)
 	if isSelected {
-		fFgStyle = lipgloss.NewStyle().Foreground(m.theme.ColorHighlightProgressFg)
-		fBgStyle = lipgloss.NewStyle().Foreground(m.theme.ColorHighlightProgressBg)
+		fFgStyle = lipgloss.NewStyle().Foreground(m.theme.HighlightProgressFg)
+		fBgStyle = lipgloss.NewStyle().Foreground(m.theme.HighlightProgressBg)
 	}
 	
 	fFilledPart := fFgStyle.Render(strings.Repeat("█", fFilled))
 	fEmptyPart := fBgStyle.Render(strings.Repeat("░", barW-fFilled))
 	fBarStr := fFilledPart + fEmptyPart
 
-	statsStr := lipgloss.NewStyle().Foreground(m.theme.ColorTasks).Render(fmt.Sprintf("(%d/%d) tasks complete", fts.CompletedTasks, fts.TotalTasks))
+	statsStr := lipgloss.NewStyle().Foreground(m.theme.Tasks).Render(fmt.Sprintf("(%d/%d) tasks complete", fts.CompletedTasks, fts.TotalTasks))
 
 	var lines []string
 	for _, line := range wrappedPath {
@@ -552,7 +552,7 @@ func (m projectPageModel) renderRecurringTaskItem(task TaskItem, isSelected bool
 
 	checkbox := icon.CheckboxUnchecked.String() + " "
 	checkStyle := lipgloss.NewStyle().Foreground(m.theme.Muted)
-	textStyle := lipgloss.NewStyle().Foreground(m.theme.ColorName)
+	textStyle := lipgloss.NewStyle().Foreground(m.theme.Name)
 
 	if task.Completed {
 		checkbox = icon.CheckboxChecked.String() + " "
@@ -561,7 +561,7 @@ func (m projectPageModel) renderRecurringTaskItem(task TaskItem, isSelected bool
 	}
 
 	if isSelected {
-		textStyle = textStyle.Foreground(m.theme.ColorHighlightName).Bold(true)
+		textStyle = textStyle.Foreground(m.theme.HighlightName).Bold(true)
 	}
 
 	contentWidth := m.width - 8

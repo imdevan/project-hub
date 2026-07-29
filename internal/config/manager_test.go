@@ -175,8 +175,8 @@ func TestManagerLoadWithOverride(t *testing.T) {
 		if cfg.Editor != "emacs" {
 			t.Errorf("expected editor from override, got %q", cfg.Editor)
 		}
-		if cfg.Primary != "03" {
-			t.Errorf("expected primary from override, got %q", cfg.Primary)
+		if cfg.Colors.Primary != "03" {
+			t.Errorf("expected primary from override, got %q", cfg.Colors.Primary)
 		}
 	})
 
@@ -213,7 +213,7 @@ func TestManagerLocalOverridesGlobal(t *testing.T) {
 	if err := os.MkdirAll(filepath.Dir(globalPath), 0o755); err != nil {
 		t.Fatalf("mkdir global config dir: %v", err)
 	}
-	globalData := []byte("editor = \"vim\"\nprimary = \"01\"\n")
+	globalData := []byte("editor = \"vim\"\n[colors]\nprimary = \"01\"\n")
 	if err := os.WriteFile(globalPath, globalData, 0o644); err != nil {
 		t.Fatalf("write global config: %v", err)
 	}
@@ -237,8 +237,8 @@ func TestManagerLocalOverridesGlobal(t *testing.T) {
 	if cfg.Editor != "emacs" {
 		t.Errorf("expected editor from local config, got %q", cfg.Editor)
 	}
-	if cfg.Primary != "01" {
-		t.Errorf("expected primary from global config, got %q", cfg.Primary)
+	if cfg.Colors.Primary != "01" {
+		t.Errorf("expected primary from global config, got %q", cfg.Colors.Primary)
 	}
 }
 
@@ -272,11 +272,11 @@ func TestManagerPartialConfig(t *testing.T) {
 			t.Errorf("expected editor from config, got %q", cfg.Editor)
 		}
 		// Check that defaults are still present
-		if cfg.Primary != "02" {
-			t.Errorf("expected default primary, got %q", cfg.Primary)
+		if cfg.Colors.Primary != "02" {
+			t.Errorf("expected default primary, got %q", cfg.Colors.Primary)
 		}
-		if cfg.Headings != "15" {
-			t.Errorf("expected default headings, got %q", cfg.Headings)
+		if cfg.Colors.Headings != "15" {
+			t.Errorf("expected default headings, got %q", cfg.Colors.Headings)
 		}
 	})
 }
@@ -295,6 +295,7 @@ func TestManagerColorOverrides(t *testing.T) {
 	}
 
 	data := []byte(`
+[colors]
 headings = "10"
 primary = "04"
 secondary = "05"
@@ -322,17 +323,17 @@ border = "06"
 		got      string
 		expected string
 	}{
-		{"Headings", cfg.Headings, "10"},
-		{"Primary", cfg.Primary, "04"},
-		{"Secondary", cfg.Secondary, "05"},
-		{"Text", cfg.Text, "09"},
-		{"TextHighlight", cfg.TextHighlight, "11"},
-		{"DescriptionHighlight", cfg.DescriptionHighlight, "12"},
-		{"Tags", cfg.Tags, "14"},
-		{"Flags", cfg.Flags, "15"},
-		{"Muted", cfg.Muted, "07"},
-		{"Accent", cfg.Accent, "16"},
-		{"Border", cfg.Border, "06"},
+		{"Headings", cfg.Colors.Headings, "10"},
+		{"Primary", cfg.Colors.Primary, "04"},
+		{"Secondary", cfg.Colors.Secondary, "05"},
+		{"Text", cfg.Colors.Text, "09"},
+		{"TextHighlight", cfg.Colors.TextHighlight, "11"},
+		{"DescriptionHighlight", cfg.Colors.DescriptionHighlight, "12"},
+		{"Tags", cfg.Colors.Tags, "14"},
+		{"Flags", cfg.Colors.Flags, "15"},
+		{"Muted", cfg.Colors.Muted, "07"},
+		{"Accent", cfg.Colors.Accent, "16"},
+		{"Border", cfg.Colors.Border, "06"},
 	}
 
 	for _, tt := range tests {
@@ -427,16 +428,18 @@ func TestManagerLoadsColorOverrides(t *testing.T) {
 	_ = os.MkdirAll(filepath.Dir(configPath), 0o755)
 
 	tomlContent := `
-color_title = "12"
-color_highlight_border = "13"
-color_name = "14"
-color_highlight_name = "15"
-color_tasks = "16"
-color_progress_bg = "17"
-color_progress_fg = "18"
-color_highlight_progress_bg = "19"
-color_highlight_progress_fg = "20"
 show_taskless = true
+
+[colors]
+title = "12"
+highlight_border = "13"
+name = "14"
+highlight_name = "15"
+tasks = "16"
+progress_bg = "17"
+progress_fg = "18"
+highlight_progress_bg = "19"
+highlight_progress_fg = "20"
 `
 	_ = os.WriteFile(configPath, []byte(tomlContent), 0o644)
 
@@ -446,32 +449,32 @@ show_taskless = true
 		t.Fatalf("Load color overrides failed: %v", err)
 	}
 
-	if cfg.ColorTitle != "12" {
-		t.Errorf("expected ColorTitle 12, got %q", cfg.ColorTitle)
+	if cfg.Colors.Title != "12" {
+		t.Errorf("expected Colors.Title 12, got %q", cfg.Colors.Title)
 	}
-	if cfg.ColorHighlightBorder != "13" {
-		t.Errorf("expected ColorHighlightBorder 13, got %q", cfg.ColorHighlightBorder)
+	if cfg.Colors.HighlightBorder != "13" {
+		t.Errorf("expected Colors.HighlightBorder 13, got %q", cfg.Colors.HighlightBorder)
 	}
-	if cfg.ColorName != "14" {
-		t.Errorf("expected ColorName 14, got %q", cfg.ColorName)
+	if cfg.Colors.Name != "14" {
+		t.Errorf("expected Colors.Name 14, got %q", cfg.Colors.Name)
 	}
-	if cfg.ColorHighlightName != "15" {
-		t.Errorf("expected ColorHighlightName 15, got %q", cfg.ColorHighlightName)
+	if cfg.Colors.HighlightName != "15" {
+		t.Errorf("expected Colors.HighlightName 15, got %q", cfg.Colors.HighlightName)
 	}
-	if cfg.ColorTasks != "16" {
-		t.Errorf("expected ColorTasks 16, got %q", cfg.ColorTasks)
+	if cfg.Colors.Tasks != "16" {
+		t.Errorf("expected Colors.Tasks 16, got %q", cfg.Colors.Tasks)
 	}
-	if cfg.ColorProgressBg != "17" {
-		t.Errorf("expected ColorProgressBg 17, got %q", cfg.ColorProgressBg)
+	if cfg.Colors.ProgressBg != "17" {
+		t.Errorf("expected Colors.ProgressBg 17, got %q", cfg.Colors.ProgressBg)
 	}
-	if cfg.ColorProgressFg != "18" {
-		t.Errorf("expected ColorProgressFg 18, got %q", cfg.ColorProgressFg)
+	if cfg.Colors.ProgressFg != "18" {
+		t.Errorf("expected Colors.ProgressFg 18, got %q", cfg.Colors.ProgressFg)
 	}
-	if cfg.ColorHighlightProgressBg != "19" {
-		t.Errorf("expected ColorHighlightProgressBg 19, got %q", cfg.ColorHighlightProgressBg)
+	if cfg.Colors.HighlightProgressBg != "19" {
+		t.Errorf("expected Colors.HighlightProgressBg 19, got %q", cfg.Colors.HighlightProgressBg)
 	}
-	if cfg.ColorHighlightProgressFg != "20" {
-		t.Errorf("expected ColorHighlightProgressFg 20, got %q", cfg.ColorHighlightProgressFg)
+	if cfg.Colors.HighlightProgressFg != "20" {
+		t.Errorf("expected Colors.HighlightProgressFg 20, got %q", cfg.Colors.HighlightProgressFg)
 	}
 	if !cfg.ShowTaskless {
 		t.Errorf("expected ShowTaskless true, got false")

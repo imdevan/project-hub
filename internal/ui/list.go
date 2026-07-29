@@ -54,7 +54,7 @@ func ApplyListStyles(model *list.Model, theme Theme) {
 	
 	// Title style: color_title, bold, no background, left aligned
 	model.Styles.Title = model.Styles.Title.
-		Foreground(theme.ColorTitle).
+		Foreground(theme.Title).
 		Background(nil).
 		Bold(true).
 		Align(lipgloss.Left).

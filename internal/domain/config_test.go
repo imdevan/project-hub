@@ -18,63 +18,63 @@ func TestDefaultConfig(t *testing.T) {
 
 	t.Run("has all color values set", func(t *testing.T) {
 		colorFields := map[string]string{
-			"Headings":             cfg.Headings,
-			"Primary":              cfg.Primary,
-			"Secondary":            cfg.Secondary,
-			"Text":                 cfg.Text,
-			"TextHighlight":        cfg.TextHighlight,
-			"DescriptionHighlight": cfg.DescriptionHighlight,
-			"Tags":                 cfg.Tags,
-			"Flags":                cfg.Flags,
-			"Muted":                cfg.Muted,
-			"Accent":               cfg.Accent,
-			"Border":               cfg.Border,
-			"Error":                cfg.Error,
+			"Headings":             cfg.Colors.Headings,
+			"Primary":              cfg.Colors.Primary,
+			"Secondary":            cfg.Colors.Secondary,
+			"Text":                 cfg.Colors.Text,
+			"TextHighlight":        cfg.Colors.TextHighlight,
+			"DescriptionHighlight": cfg.Colors.DescriptionHighlight,
+			"Tags":                 cfg.Colors.Tags,
+			"Flags":                cfg.Colors.Flags,
+			"Muted":                cfg.Colors.Muted,
+			"Accent":               cfg.Colors.Accent,
+			"Border":               cfg.Colors.Border,
+			"Error":                cfg.Colors.Error,
 		}
 
 		for name, value := range colorFields {
 			if value == "" {
-				t.Errorf("DefaultConfig().%s should not be empty", name)
+				t.Errorf("DefaultConfig().Colors.%s should not be empty", name)
 			}
 		}
 	})
 
 	t.Run("has expected default values", func(t *testing.T) {
-		if cfg.Headings != "15" {
-			t.Errorf("DefaultConfig().Headings = %q, want %q", cfg.Headings, "15")
+		if cfg.Colors.Headings != "15" {
+			t.Errorf("DefaultConfig().Colors.Headings = %q, want %q", cfg.Colors.Headings, "15")
 		}
-		if cfg.Primary != "02" {
-			t.Errorf("DefaultConfig().Primary = %q, want %q", cfg.Primary, "02")
+		if cfg.Colors.Primary != "02" {
+			t.Errorf("DefaultConfig().Colors.Primary = %q, want %q", cfg.Colors.Primary, "02")
 		}
-		if cfg.Secondary != "06" {
-			t.Errorf("DefaultConfig().Secondary = %q, want %q", cfg.Secondary, "06")
+		if cfg.Colors.Secondary != "06" {
+			t.Errorf("DefaultConfig().Colors.Secondary = %q, want %q", cfg.Colors.Secondary, "06")
 		}
-		if cfg.Text != "07" {
-			t.Errorf("DefaultConfig().Text = %q, want %q", cfg.Text, "07")
+		if cfg.Colors.Text != "07" {
+			t.Errorf("DefaultConfig().Colors.Text = %q, want %q", cfg.Colors.Text, "07")
 		}
-		if cfg.TextHighlight != "06" {
-			t.Errorf("DefaultConfig().TextHighlight = %q, want %q", cfg.TextHighlight, "06")
+		if cfg.Colors.TextHighlight != "06" {
+			t.Errorf("DefaultConfig().Colors.TextHighlight = %q, want %q", cfg.Colors.TextHighlight, "06")
 		}
-		if cfg.DescriptionHighlight != "05" {
-			t.Errorf("DefaultConfig().DescriptionHighlight = %q, want %q", cfg.DescriptionHighlight, "05")
+		if cfg.Colors.DescriptionHighlight != "05" {
+			t.Errorf("DefaultConfig().Colors.DescriptionHighlight = %q, want %q", cfg.Colors.DescriptionHighlight, "05")
 		}
-		if cfg.Tags != "13" {
-			t.Errorf("DefaultConfig().Tags = %q, want %q", cfg.Tags, "13")
+		if cfg.Colors.Tags != "13" {
+			t.Errorf("DefaultConfig().Colors.Tags = %q, want %q", cfg.Colors.Tags, "13")
 		}
-		if cfg.Flags != "12" {
-			t.Errorf("DefaultConfig().Flags = %q, want %q", cfg.Flags, "12")
+		if cfg.Colors.Flags != "12" {
+			t.Errorf("DefaultConfig().Colors.Flags = %q, want %q", cfg.Colors.Flags, "12")
 		}
-		if cfg.Muted != "08" {
-			t.Errorf("DefaultConfig().Muted = %q, want %q", cfg.Muted, "08")
+		if cfg.Colors.Muted != "08" {
+			t.Errorf("DefaultConfig().Colors.Muted = %q, want %q", cfg.Colors.Muted, "08")
 		}
-		if cfg.Accent != "13" {
-			t.Errorf("DefaultConfig().Accent = %q, want %q", cfg.Accent, "13")
+		if cfg.Colors.Accent != "13" {
+			t.Errorf("DefaultConfig().Colors.Accent = %q, want %q", cfg.Colors.Accent, "13")
 		}
-		if cfg.Border != "08" {
-			t.Errorf("DefaultConfig().Border = %q, want %q", cfg.Border, "08")
+		if cfg.Colors.Border != "08" {
+			t.Errorf("DefaultConfig().Colors.Border = %q, want %q", cfg.Colors.Border, "08")
 		}
-		if cfg.Error != "01" {
-			t.Errorf("DefaultConfig().Error = %q, want %q", cfg.Error, "01")
+		if cfg.Colors.Error != "01" {
+			t.Errorf("DefaultConfig().Colors.Error = %q, want %q", cfg.Colors.Error, "01")
 		}
 	})
 
@@ -108,7 +108,7 @@ func TestDefaultConfig_Consistency(t *testing.T) {
 		if cfg1.Editor != cfg2.Editor {
 			t.Error("DefaultConfig() should return consistent Editor values")
 		}
-		if cfg1.Headings != cfg2.Headings {
+		if cfg1.Colors.Headings != cfg2.Colors.Headings {
 			t.Error("DefaultConfig() should return consistent Headings values")
 		}
 	})
@@ -121,7 +121,7 @@ func TestConfig_StructTags(t *testing.T) {
 
 		// Set values to ensure struct is properly tagged
 		cfg.Editor = "test"
-		cfg.Primary = "01"
+		cfg.Colors.Primary = "01"
 		cfg.ListSpacing = "compact"
 
 		// If this compiles and runs, the struct tags are present

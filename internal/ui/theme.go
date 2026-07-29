@@ -10,60 +10,60 @@ import (
 
 // Theme holds configurable colors for UI output.
 type Theme struct {
-	Headings                 lipgloss.Color
-	Primary                  lipgloss.Color
-	Secondary                lipgloss.Color
-	Text                     lipgloss.Color
-	TextHighlight            lipgloss.Color
-	DescriptionHighlight     lipgloss.Color
-	Tags                     lipgloss.Color
-	Flags                    lipgloss.Color
-	Muted                    lipgloss.Color
-	Border                   lipgloss.Color
-	Error                    lipgloss.Color
-	Success                  lipgloss.Color
-	ColorTitle               lipgloss.Color
-	ColorHighlightBorder     lipgloss.Color
-	ColorName                lipgloss.Color
-	ColorHighlightName       lipgloss.Color
-	ColorTasks               lipgloss.Color
-	ColorProgressBg          lipgloss.Color
-	ColorProgressFg          lipgloss.Color
-	ColorHighlightProgressBg  lipgloss.Color
-	ColorHighlightProgressFg lipgloss.Color
+	Headings            lipgloss.Color
+	Primary             lipgloss.Color
+	Secondary           lipgloss.Color
+	Text                lipgloss.Color
+	TextHighlight       lipgloss.Color
+	DescriptionHighlight lipgloss.Color
+	Tags                lipgloss.Color
+	Flags               lipgloss.Color
+	Muted               lipgloss.Color
+	Border              lipgloss.Color
+	Error               lipgloss.Color
+	Success             lipgloss.Color
+	Title               lipgloss.Color
+	HighlightBorder     lipgloss.Color
+	Name                lipgloss.Color
+	HighlightName       lipgloss.Color
+	Tasks               lipgloss.Color
+	ProgressBg          lipgloss.Color
+	ProgressFg          lipgloss.Color
+	HighlightProgressBg lipgloss.Color
+	HighlightProgressFg lipgloss.Color
 }
 
 // ThemeFromConfig builds a theme with safe fallbacks.
 func ThemeFromConfig(cfg domain.Config) Theme {
-	headings := resolveColor(cfg.Headings, "15")
-	primary := resolveColor(cfg.Primary, "02")
-	secondary := resolveColor(cfg.Secondary, "06")
-	text := resolveColor(cfg.Text, "07")
-	textHighlight := resolveColor(resolveFallback(cfg.TextHighlight, cfg.Secondary), "06")
-	muted := resolveColor(cfg.Muted, "08")
+	headings := resolveColor(cfg.Colors.Headings, "15")
+	primary := resolveColor(cfg.Colors.Primary, "02")
+	secondary := resolveColor(cfg.Colors.Secondary, "06")
+	text := resolveColor(cfg.Colors.Text, "07")
+	textHighlight := resolveColor(resolveFallback(cfg.Colors.TextHighlight, cfg.Colors.Secondary), "06")
+	muted := resolveColor(cfg.Colors.Muted, "08")
 
 	return Theme{
-		Headings:                 headings,
-		Primary:                  primary,
-		Secondary:                secondary,
-		Text:                     text,
-		TextHighlight:            textHighlight,
-		DescriptionHighlight:     resolveColor(resolveFallback(cfg.DescriptionHighlight, cfg.Secondary), "06"),
-		Tags:                     resolveColor(resolveFallback(cfg.Tags, cfg.Accent), "13"),
-		Flags:                    resolveColor(cfg.Flags, "12"),
-		Muted:                    muted,
-		Border:                   resolveColor(cfg.Border, "08"),
-		Error:                    resolveColor(cfg.Error, "01"),
-		Success:                  resolveColor(resolveFallback(cfg.Success, cfg.Primary), "02"),
-		ColorTitle:               resolveColor(cfg.ColorTitle, string(primary)),
-		ColorHighlightBorder:     resolveColor(cfg.ColorHighlightBorder, string(primary)),
-		ColorName:                resolveColor(cfg.ColorName, string(text)),
-		ColorHighlightName:       resolveColor(cfg.ColorHighlightName, string(textHighlight)),
-		ColorTasks:               resolveColor(cfg.ColorTasks, string(secondary)),
-		ColorProgressBg:          resolveColor(cfg.ColorProgressBg, string(muted)),
-		ColorProgressFg:          resolveColor(cfg.ColorProgressFg, string(primary)),
-		ColorHighlightProgressBg:  resolveColor(cfg.ColorHighlightProgressBg, string(muted)),
-		ColorHighlightProgressFg: resolveColor(cfg.ColorHighlightProgressFg, string(textHighlight)),
+		Headings:            headings,
+		Primary:             primary,
+		Secondary:           secondary,
+		Text:                text,
+		TextHighlight:       textHighlight,
+		DescriptionHighlight: resolveColor(resolveFallback(cfg.Colors.DescriptionHighlight, cfg.Colors.Secondary), "06"),
+		Tags:                resolveColor(resolveFallback(cfg.Colors.Tags, cfg.Colors.Accent), "13"),
+		Flags:               resolveColor(cfg.Colors.Flags, "12"),
+		Muted:               muted,
+		Border:              resolveColor(cfg.Colors.Border, "08"),
+		Error:               resolveColor(cfg.Colors.Error, "01"),
+		Success:             resolveColor(resolveFallback(cfg.Colors.Success, cfg.Colors.Primary), "02"),
+		Title:               resolveColor(cfg.Colors.Title, string(primary)),
+		HighlightBorder:     resolveColor(cfg.Colors.HighlightBorder, string(primary)),
+		Name:                resolveColor(cfg.Colors.Name, string(text)),
+		HighlightName:       resolveColor(cfg.Colors.HighlightName, string(textHighlight)),
+		Tasks:               resolveColor(cfg.Colors.Tasks, string(secondary)),
+		ProgressBg:          resolveColor(cfg.Colors.ProgressBg, string(muted)),
+		ProgressFg:          resolveColor(cfg.Colors.ProgressFg, string(primary)),
+		HighlightProgressBg: resolveColor(cfg.Colors.HighlightProgressBg, string(muted)),
+		HighlightProgressFg: resolveColor(cfg.Colors.HighlightProgressFg, string(textHighlight)),
 	}
 }
 

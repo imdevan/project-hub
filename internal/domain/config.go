@@ -7,8 +7,8 @@ import (
 )
 
 // Config describes the resolved configuration.
-type Config struct {
-	Editor                   string `toml:"editor"`
+// ColorsConfig describes color settings in the [colors] table.
+type ColorsConfig struct {
 	Primary                  string `toml:"primary"`
 	Secondary                string `toml:"secondary"`
 	Headings                 string `toml:"headings"`
@@ -22,22 +22,28 @@ type Config struct {
 	Border                   string `toml:"border"`
 	Error                    string `toml:"error"`
 	Success                  string `toml:"success"`
-	ColorTitle               string `toml:"color_title"`
-	ColorHighlightBorder     string `toml:"color_highlight_border"`
-	ColorName                string `toml:"color_name"`
-	ColorHighlightName       string `toml:"color_highlight_name"`
-	ColorTasks               string `toml:"color_tasks"`
-	ColorProgressBg          string `toml:"color_progress_bg"`
-	ColorProgressFg          string `toml:"color_progress_fg"`
-	ColorHighlightProgressBg string `toml:"color_highlight_progress_bg"`
-	ColorHighlightProgressFg string `toml:"color_highlight_progress_fg"`
-	ListSpacing              string `toml:"list_spacing"`
+	Title                    string `toml:"title"`
+	HighlightBorder          string `toml:"highlight_border"`
+	Name                     string `toml:"name"`
+	HighlightName            string `toml:"highlight_name"`
+	Tasks                    string `toml:"tasks"`
+	ProgressBg               string `toml:"progress_bg"`
+	ProgressFg               string `toml:"progress_fg"`
+	HighlightProgressBg      string `toml:"highlight_progress_bg"`
+	HighlightProgressFg      string `toml:"highlight_progress_fg"`
+}
+
+// Config describes the resolved configuration.
+type Config struct {
+	Editor      string       `toml:"editor"`
+	Colors      ColorsConfig `toml:"colors"`
+	ListSpacing string       `toml:"list_spacing"`
 
 	// System settings
-	IndexFolders  []string          `toml:"index_folders"`
-	CacheInterval int               `toml:"cache_interval"`
-	HomeIcon      string            `toml:"home_icon"`
-	DefaultSortBy string            `toml:"default_sort_by"`
+	IndexFolders  []string `toml:"index_folders"`
+	CacheInterval int      `toml:"cache_interval"`
+	HomeIcon      string   `toml:"home_icon"`
+	DefaultSortBy string   `toml:"default_sort_by"`
 
 	// Todo settings
 	IgnoreFolders []string `toml:"ignore_folders"`
@@ -76,31 +82,33 @@ var DefaultRainbowAnchors = []string{
 // DefaultConfig returns the default configuration values.
 func DefaultConfig() Config {
 	return Config{
-		Editor:                   "nvim",
-		Headings:                 "15",
-		Primary:                  "02",
-		Secondary:                "06",
-		Text:                     "07",
-		TextHighlight:            "06",
-		DescriptionHighlight:     "05",
-		Tags:                     "13",
-		Flags:                    "12",
-		Muted:                    "08",
-		Accent:                   "13",
-		Border:                   "08",
-		Error:                    "01",
-		Success:                  "02",
-		ColorTitle:               "15",
-		ColorHighlightBorder:     "02",
-		ColorName:                "07",
-		ColorHighlightName:       "10",
-		ColorTasks:               "13",
-		ColorProgressBg:          "08",
-		ColorProgressFg:          "02",
-		ColorHighlightProgressBg: "08",
-		ColorHighlightProgressFg: "10",
-		ListSpacing:              "space",
-		IndexFolders:             []string{},
+		Editor: "nvim",
+		Colors: ColorsConfig{
+			Headings:                 "15",
+			Primary:                  "02",
+			Secondary:                "06",
+			Text:                     "07",
+			TextHighlight:            "06",
+			DescriptionHighlight:     "05",
+			Tags:                     "13",
+			Flags:                    "12",
+			Muted:                    "08",
+			Accent:                   "13",
+			Border:                   "08",
+			Error:                    "01",
+			Success:                  "02",
+			Title:                    "15",
+			HighlightBorder:          "02",
+			Name:                     "07",
+			HighlightName:            "10",
+			Tasks:                    "13",
+			ProgressBg:               "08",
+			ProgressFg:               "02",
+			HighlightProgressBg:      "08",
+			HighlightProgressFg:      "10",
+		},
+		ListSpacing:  "space",
+		IndexFolders: []string{},
 		CacheInterval:            300,
 		HomeIcon:                 "~",
 		DefaultSortBy:            "newest",
