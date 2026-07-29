@@ -1,14 +1,14 @@
 # Package information - source of truth for project metadata
 # Run just sync after modifying this file
 
-name = "super-todo"
-package_name = "super-todo"
-module = "github.com/super-todo"
-description = "A super, todo manager"
-short = "Super todo!"
+name = "project-hub"
+package_name = "project-hub"
+module = "github.com/project-hub"
+description = "A hub for your projects."
+short = "Project hub"
 version = "1.1.0"
-homepage = "https://devan.gg/super-todo"
-repository = "https://github.com/imdevan/super-todo/"
+homepage = "https://devan.gg/project-hub"
+repository = "https://github.com/imdevan/project-hub/"
 author = "hi@devan.gg"
 docs_site = "https://devan.gg"
-docs_base = "/super-todo"
+docs_base = "/project-hub"
