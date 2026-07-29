@@ -53,17 +53,10 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 		cached, scannedAt, cacheErr := store.LoadProjectsCache()
 		if cacheErr == nil && len(cached) > 0 && time.Since(scannedAt) < time.Duration(cfg.SyncInterval)*time.Second {
 			// Restore pinned state from DB (cache may be stale on pins)
-			for i := range cached {
-				order, pinned := pinnedMap[cached[i].Path]
-				cached[i].Pinned = pinned
-				cached[i].PinOrder = order
-			}
 			projects = cached
 			usedCache = true
 		}
 	}
-
-	recurringProjects := scanner.ScanRecurringProjects()
 
 	if !usedCache {
 		projects = make([]Project, len(dirs))
@@ -78,15 +71,6 @@ func RunProjectListing(cfg domain.Config, cwd string) error {
 			projects[i] = proj
 		}
 	}
-
-	// Filter out any cached recurring projects to ensure fresh state, then prepend recurring projects
-	var regularProjects []Project
-	for _, p := range projects {
-		if !p.IsRecurring {
-			regularProjects = append(regularProjects, p)
-		}
-	}
-	projects = append(recurringProjects, regularProjects...)
 
 	sortProjects(projects)
 
@@ -276,37 +260,33 @@ func (d projectDelegate) Render(w io.Writer, m list.Model, index int, item list.
 	}
 
 	var metadataLine string
-	if proj.Project.IsRecurring {
-		metadataLine = statsStyle.Render(statsText)
-	} else {
-		leftPart := fmt.Sprintf("%s  %s", statsStyle.Render(statsText), todoStyle.Render(todoText))
-		leftWidth := lipgloss.Width(leftPart)
+	leftPart := fmt.Sprintf("%s  %s", statsStyle.Render(statsText), todoStyle.Render(todoText))
+	leftWidth := lipgloss.Width(leftPart)
 
-		// Room available for path to the right
-		pathMaxLen := contentWidth - leftWidth - 2
-		if pathMaxLen >= 10 {
-			truncatedPath := truncatePath(proj.Project.Path, pathMaxLen)
-			renderedPath := pathStyle.Render(truncatedPath)
-			pathWidth := lipgloss.Width(renderedPath)
-			spaces := contentWidth - leftWidth - pathWidth
-			if spaces < 2 {
-				spaces = 2
-			}
-			metadataLine = leftPart + strings.Repeat(" ", spaces) + renderedPath
-		} else if contentWidth-lipgloss.Width(statsStyle.Render(statsText))-2 >= 10 {
-			leftPartShort := statsStyle.Render(statsText)
-			leftWShort := lipgloss.Width(leftPartShort)
-			truncatedPath := truncatePath(proj.Project.Path, contentWidth-leftWShort-2)
-			renderedPath := pathStyle.Render(truncatedPath)
-			pathWidth := lipgloss.Width(renderedPath)
-			spaces := contentWidth - leftWShort - pathWidth
-			if spaces < 2 {
-				spaces = 2
-			}
-			metadataLine = leftPartShort + strings.Repeat(" ", spaces) + renderedPath
-		} else {
-			metadataLine = leftPart
+	// Room available for path to the right
+	pathMaxLen := contentWidth - leftWidth - 2
+	if pathMaxLen >= 10 {
+		truncatedPath := truncatePath(proj.Project.Path, pathMaxLen)
+		renderedPath := pathStyle.Render(truncatedPath)
+		pathWidth := lipgloss.Width(renderedPath)
+		spaces := contentWidth - leftWidth - pathWidth
+		if spaces < 2 {
+			spaces = 2
 		}
+		metadataLine = leftPart + strings.Repeat(" ", spaces) + renderedPath
+	} else if contentWidth-lipgloss.Width(statsStyle.Render(statsText))-2 >= 10 {
+		leftPartShort := statsStyle.Render(statsText)
+		leftWShort := lipgloss.Width(leftPartShort)
+		truncatedPath := truncatePath(proj.Project.Path, contentWidth-leftWShort-2)
+		renderedPath := pathStyle.Render(truncatedPath)
+		pathWidth := lipgloss.Width(renderedPath)
+		spaces := contentWidth - leftWShort - pathWidth
+		if spaces < 2 {
+			spaces = 2
+		}
+		metadataLine = leftPartShort + strings.Repeat(" ", spaces) + renderedPath
+	} else {
+		metadataLine = leftPart
 	}
 
 	content := titleStyle.Render(title) + "\n" + barStr + "\n" + metadataLine
@@ -647,7 +627,7 @@ func (m projectListModel) View() string {
 	} else {
 		body += m.list.View()
 
-		if m.indexing {
+		if m.indexing && m.indexingIndex < len(m.projects) {
 			currentProjName := m.projects[m.indexingIndex].Name
 			statusStr := fmt.Sprintf("\n%s indexing tasks: %s (%d/%d)...",
 				m.spinner.View(),
@@ -702,30 +682,7 @@ func (m projectListModel) getShortHelpKeys() []key.Binding {
 
 func sortProjects(projects []Project) {
 	sort.SliceStable(projects, func(i, j int) bool {
-		// 1. Recurring projects come first (daily -> weekly -> todo)
-		if projects[i].IsRecurring && projects[j].IsRecurring {
-			orderMap := map[string]int{"daily": 1, "weekly": 2, "todo": 3}
-			o1 := orderMap[projects[i].RecurringType]
-			o2 := orderMap[projects[j].RecurringType]
-			if o1 == 0 {
-				o1 = 99
-			}
-			if o2 == 0 {
-				o2 = 99
-			}
-			if o1 != o2 {
-				return o1 < o2
-			}
-			return strings.ToLower(projects[i].Name) < strings.ToLower(projects[j].Name)
-		}
-		if projects[i].IsRecurring && !projects[j].IsRecurring {
-			return true
-		}
-		if !projects[i].IsRecurring && projects[j].IsRecurring {
-			return false
-		}
-
-		// 2. Pinned projects come next
+		// 1. Pinned projects come first
 		if projects[i].Pinned && projects[j].Pinned {
 			return projects[i].PinOrder < projects[j].PinOrder
 		}
@@ -736,7 +693,7 @@ func sortProjects(projects []Project) {
 			return false
 		}
 
-		// 3. Regular projects by name
+		// 2. Regular projects by name
 		return strings.ToLower(projects[i].Name) < strings.ToLower(projects[j].Name)
 	})
 }

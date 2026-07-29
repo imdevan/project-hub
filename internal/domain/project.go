@@ -38,8 +38,6 @@ type Project struct {
 	FtsFiles       []FtsFileDetail
 	Pinned         bool
 	PinOrder       int
-	IsRecurring    bool
-	RecurringType  string // "daily" or "weekly"
 }
 
 // Progress returns the completion percentage of tasks, or 0 if no tasks exist.

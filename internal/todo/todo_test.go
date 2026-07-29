@@ -3,7 +3,6 @@ package todo
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/project-hub/internal/domain"
@@ -215,51 +214,4 @@ func TestParseFTSDetailedAndFindTodos(t *testing.T) {
 	}
 }
 
-func TestRecurringTasks(t *testing.T) {
-	cfg := domain.DefaultConfig()
-	cfg.DailyReset = "04:20"
-	cfg.WeeklyReset = "monday"
-
-	tempDir := t.TempDir()
-	dailyFile := filepath.Join(tempDir, "daily.md")
-
-	content := `## Daily Habits
-- [x] Exercise
-- [ ] Read book
-`
-	if err := os.WriteFile(dailyFile, []byte(content), 0644); err != nil {
-		t.Fatalf("failed to write daily.md: %v", err)
-	}
-
-	// 1. First run should insert metadata and perform initial reset if checked
-	if err := CheckAndResetRecurringTasks(dailyFile, "daily", cfg); err != nil {
-		t.Fatalf("CheckAndResetRecurringTasks failed: %v", err)
-	}
-
-	data, _ := os.ReadFile(dailyFile)
-	if !strings.Contains(string(data), "<!-- last_reset:") {
-		t.Errorf("expected metadata comment in daily.md, got:\n%s", string(data))
-	}
-
-	// 2. Test toggling checkbox on line 2 (Exercise)
-	if err := ToggleTaskInFile(dailyFile, 2); err != nil {
-		t.Fatalf("ToggleTaskInFile failed: %v", err)
-	}
-
-	data, _ = os.ReadFile(dailyFile)
-	if !strings.Contains(string(data), "- [x] Exercise") {
-		t.Errorf("expected Exercise to be toggled to [x], got:\n%s", string(data))
-	}
-
-	// 3. Test ReadYAMLName
-	yamlContent := `---
-name: My Custom Daily Routine
----
-## Tasks
-- [ ] Task 1
-`
-	if name := ReadYAMLName(yamlContent); name != "My Custom Daily Routine" {
-		t.Errorf("expected 'My Custom Daily Routine', got %q", name)
-	}
-}
 

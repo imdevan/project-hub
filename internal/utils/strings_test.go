@@ -104,9 +104,9 @@ func TestWrapText(t *testing.T) {
 		},
 		{
 			name:  "path wrapping",
-			input: "/home/user/projects/clis/super-todo",
+			input: "/home/user/projects/clis/project-hub",
 			width: 15,
-			want:  []string{"/home/user/proj", "ects/clis/super", "-todo"},
+			want:  []string{"/home/user/proj", "ects/clis/proje", "ct-hub"},
 		},
 	}
 

@@ -54,8 +54,6 @@ type Config struct {
 	TodoTokens    []string `toml:"todo_tokens"`
 	ShowTaskless  bool     `toml:"show_taskless"`
 	SyncInterval  int      `toml:"sync_interval"`
-	DailyReset    string   `toml:"daily_reset"`
-	WeeklyReset   string   `toml:"weekly_reset"`
 
 	// Rainbow settings
 	Rainbow interface{} `toml:"rainbow"`
@@ -122,8 +120,6 @@ func DefaultConfig() Config {
 		TodoTokens:    []string{"TODO", "FIXME"},
 		ShowTaskless:  false,
 		SyncInterval:  3600,
-		DailyReset:    "04:20",
-		WeeklyReset:   "monday",
 		Rainbow:       false,
 	}
 }

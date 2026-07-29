@@ -53,7 +53,7 @@ func NewStoreAt(dbPath string) (*Store, error) {
 
 // DefaultDBPath returns the standard location for the index database.
 func DefaultDBPath() string {
-	return filepath.Join(utils.XDGDataHome(), "super-todo", "index.db")
+	return filepath.Join(utils.XDGDataHome(), "project-hub", "index.db")
 }
 
 // Close releases the database connection.

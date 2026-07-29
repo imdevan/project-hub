@@ -8,15 +8,15 @@ func TestFormatExitCommand(t *testing.T) {
 	sh := New("bash")
 
 	ctx := ExitContext{
-		Project:    "super-todo",
-		ProjectDir: "/home/devy/Projects/clis/super-todo",
-		TaskFile:   "/home/devy/Projects/clis/super-todo/plan/tasks.md",
+		Project:    "project-hub",
+		ProjectDir: "/home/devy/Projects/clis/project-hub",
+		TaskFile:   "/home/devy/Projects/clis/project-hub/plan/tasks.md",
 	}
 
 	t.Run("template execution", func(t *testing.T) {
 		tmpl := "tmux neww -n {{.Project}} && cd {{.ProjectDir}}"
 		got := sh.FormatExitCommand(tmpl, ctx)
-		want := "tmux neww -n super-todo && cd /home/devy/Projects/clis/super-todo"
+		want := "tmux neww -n project-hub && cd /home/devy/Projects/clis/project-hub"
 		if got != want {
 			t.Errorf("got %q, want %q", got, want)
 		}
@@ -24,7 +24,7 @@ func TestFormatExitCommand(t *testing.T) {
 
 	t.Run("boolean fallback true", func(t *testing.T) {
 		got := sh.FormatExitCommand("true", ctx)
-		want := "cd /home/devy/Projects/clis/super-todo"
+		want := "cd /home/devy/Projects/clis/project-hub"
 		if got != want {
 			t.Errorf("got %q, want %q", got, want)
 		}

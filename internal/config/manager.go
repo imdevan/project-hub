@@ -158,8 +158,6 @@ type partialConfig struct {
 	FtsSubtasks               interface{}          `toml:"fts_subtasks"`
 	TodoTokens               interface{}          `toml:"todo_tokens"`
 	SyncInterval             *int                 `toml:"sync_interval"`
-	DailyReset               *string              `toml:"daily_reset"`
-	WeeklyReset              *string              `toml:"weekly_reset"`
 	Rainbow                  interface{}          `toml:"rainbow"`
 }
 
@@ -387,12 +385,6 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.SyncInterval != nil {
 		config.SyncInterval = *partial.SyncInterval
-	}
-	if partial.DailyReset != nil {
-		config.DailyReset = *partial.DailyReset
-	}
-	if partial.WeeklyReset != nil {
-		config.WeeklyReset = *partial.WeeklyReset
 	}
 	if partial.Rainbow != nil {
 		switch v := partial.Rainbow.(type) {

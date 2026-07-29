@@ -45,5 +45,3 @@ fts_tasks = ["- [ ] ", "* [ ] "]
 fts_subtasks = ["- [ ] ", "* [ ] "]
 todo_tokens = ["TODO", "FIXME"]
 sync_interval = 3600  # Seconds between project scans. Set to 0 to always rescan. Press 's' to force sync.
-daily_reset = "04:20" # Time of day to reset daily.md checkboxes (HH:MM format)
-weekly_reset = "monday" # Day of week for weekly.md reset at daily_reset time
