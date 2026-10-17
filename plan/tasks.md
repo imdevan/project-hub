@@ -22,3 +22,26 @@
   - [x] 3.1.3 ignored task file is hidden from project task list and omitted from total/completed task counts
 - [x] 3.2 a user can hotkey shift+I to see ignored task files
 
+## Feature 4: export projects list
+- [ ] 4.1 add `export` command outputs tree list of dirs, and projects with remotes
+- creates a projects.lock file
+  - each project
+    - location
+    - git info - remotes, branches, current commit
+- we will be importing these later
+
+
+```
+projects.lock?
+```
+
+open question: do i store commit hashes? - certainly branches... 
+## Feature 5: import projects
+
+## Feature 6: rebase projects
+- [ ] 6.1 attempt to rebase all projects
+
+## Feature 7: online projects
+
+## Feature 8: projects are auto deleted from system after certain period of time but opening the project re clones it? 
+
