@@ -72,6 +72,7 @@ func newRootCmd() *cobra.Command {
 	flags.Set(cmd, &opts.showVersion, "version", "v", "print version information")
 
 	cmd.AddCommand(newConfigCmd())
+	cmd.AddCommand(newExportCmd())
 
 	return cmd
 }

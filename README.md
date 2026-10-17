@@ -13,6 +13,8 @@ A hub for your projects.
 project-hub                 # Opens project and todo TUI list
 project-hub config          # View or edit configuration
 project-hub config init     # Generate default config file
+project-hub export          # Write projects.lock (dirs, remotes, branches, commit) and print tree
+project-hub export -o f     # Write lock file to path f
 project-hub completion      # Generate shell completion scripts
 ```
 

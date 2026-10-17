@@ -23,11 +23,11 @@
 - [x] 3.2 a user can hotkey shift+I to see ignored task files
 
 ## Feature 4: export projects list
-- [ ] 4.1 add `export` command outputs tree list of dirs, and projects with remotes
-- creates a projects.lock file
-  - each project
-    - location
-    - git info - remotes, branches, current commit
+- [x] 4.1 add `export` command outputs tree list of dirs, and projects with remotes
+  - [x] 4.1.1 add `internal/export` package collecting path, remotes, branches, current branch, and commit per project
+  - [x] 4.1.2 render dir tree with remotes under each project
+  - [x] 4.1.3 write `projects.lock` (TOML, `~`-relative paths), `-o` flag to override path
+  - [x] 4.1.4 wire `export` cobra command, add test, update `README.md`
 - we will be importing these later
 
 
