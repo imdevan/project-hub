@@ -59,6 +59,7 @@ The following options can be set in your configuration file:
 | `open_with_tmux` | bool | `false` | When true, open project in a new tmux window named after the project |
 | `fts_files` | array | `["plan/tasks.md", ...]` | Target files for full text tasks |
 | `sync_interval` | int | `3600` | Seconds between project scans |
+| `parallel` | int | `8` | Repositories processed at once by `pull` and `import`. Override with `--jobs`/`-j` |
 
 ## Initializing Configuration
 

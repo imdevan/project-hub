@@ -18,6 +18,7 @@ project-hub export -o f     # Write lock file to path f
 project-hub import          # Clone (or pull if present) projects from <workspace>/projects.lock into the workspace
 project-hub import -l f     # Import from lock file f
 project-hub pull            # Fetch every workspace project and git pull only those behind/diverged (respects your pull.rebase / pull.ff config)
+project-hub pull -j 16      # Process 16 repos at once (default: parallel config, 8)
 project-hub -w ~/Projects   # Override workspace_location for any command
 project-hub completion      # Generate shell completion scripts
 ```
@@ -35,6 +36,7 @@ See [CONFIG.md](./CONFIG.md) for configuration details.
 - Discovery: `workspace_location` is always walked, and directories matching `index_folders` globs are walked in addition to it. Any directory containing `.git` is a project root. Folders in `ignore_folders` are skipped. Without either, the current directory is walked.
 - Import: `import` looks for `<workspace>/projects.lock`, then `<workspace>/projects.lock/projects.lock`. Each project is cloned from its `origin` (or first) remote into the workspace, keeping its path relative to the exported workspace (or the projects' common parent); other remotes are added and the recorded branch is checked out. Projects that already exist are updated with `git pull`, so your git config (`pull.rebase`, `pull.ff`, ...) decides how changes are integrated.
 - Pull: `pull` (and `import`, for projects that already exist) checks each repo before pulling. Repos with uncommitted changes to tracked files are reported as `dirty` and left alone; repos without an upstream branch are skipped. Otherwise the repo is fetched and compared with its upstream: `up to date` and `ahead` repos are not pulled, while repos that are behind or have diverged are pulled with plain `git pull`.
+- Parallelism: `pull` and `import` process up to `parallel` repos at once (`--jobs`/`-j` overrides). Results print in a stable (sorted) order; in a terminal an inline spinner shows the repos in progress, and `ctrl+c` stops starting new repos while letting running ones finish. During `import`, a project nested inside another waits for its parent to be cloned first.
 - Task files: files matching `fts_files` (e.g. `plan/tasks.md`, `todo.md`) are parsed as markdown. Lines starting with `fts_tasks` / `fts_subtasks` prefixes (`- [ ] `) count as tasks; `[x]` counts as completed. Lines starting with `fts_features` (`## Feature `) group tasks into features.
 - Code TODOs: every other file is searched for `todo_tokens` (`TODO`, `FIXME`). Binary files are skipped.
 
