@@ -46,4 +46,5 @@ fts_features = ["## Feature ", "### Feature "]
 fts_tasks = ["- [ ] ", "* [ ] "]
 fts_subtasks = ["- [ ] ", "* [ ] "]
 todo_tokens = ["TODO", "FIXME"]
+parallel = 8  # Repositories processed at once by `pull` and `import` (override with --jobs/-j)
 sync_interval = 3600  # Seconds between project scans. Set to 0 to always rescan. Press 's' to force sync.

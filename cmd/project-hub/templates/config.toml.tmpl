@@ -14,6 +14,7 @@
 # fts_subtasks = [{{range $index, $element := .FtsSubtasks}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
 # todo_tokens = [{{range $index, $element := .TodoTokens}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
 # open_with_tmux = {{.OpenWithTmux}}  # When true: opens project editor in a new tmux window named after the project
+# parallel = {{.Parallel}}  # Repositories processed at once by `pull` and `import` (override with --jobs/-j)
 # sync_interval = {{.SyncInterval}}  # Seconds between project scans (default: 3600 = 1 hour). Set to 0 to always rescan.
 
 # Display
