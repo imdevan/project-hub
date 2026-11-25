@@ -104,11 +104,9 @@ func Import(p export.Project, dest string) Result {
 		if _, err := os.Stat(filepath.Join(dest, ".git")); err != nil {
 			return fail(res, "destination exists and is not a git repository")
 		}
-		if out, err := git(dest, "pull", "--ff-only"); err != nil {
-			return fail(res, out)
-		}
-		res.Action = Pulled
-		return res
+		pulled := Pull(dest)
+		pulled.Project = p
+		return pulled
 	} else if !errors.Is(err, os.ErrNotExist) {
 		return fail(res, err.Error())
 	}
@@ -145,6 +143,22 @@ func Import(p export.Project, dest string) Result {
 		}
 	}
 	res.Detail = strings.Join(warnings, "; ")
+	return res
+}
+
+// Pull runs a plain `git pull` in dir, so the user's git config (pull.rebase, pull.ff, ...) decides how to integrate upstream changes.
+// Repositories without an upstream branch are skipped.
+func Pull(dir string) Result {
+	res := Result{Project: export.Project{Path: dir}, Dest: dir}
+	if _, err := git(dir, "rev-parse", "--abbrev-ref", "@{upstream}"); err != nil {
+		res.Action = Skipped
+		res.Detail = "no upstream branch"
+		return res
+	}
+	if out, err := git(dir, "pull"); err != nil {
+		return fail(res, out)
+	}
+	res.Action = Pulled
 	return res
 }
 

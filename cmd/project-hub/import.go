@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/project-hub/internal/config"
+	"github.com/project-hub/internal/domain"
 	"github.com/project-hub/internal/export"
 	"github.com/project-hub/internal/flags"
 	"github.com/project-hub/internal/importer"
@@ -29,11 +30,7 @@ func newImportCmd() *cobra.Command {
 				return err
 			}
 			cfg := config.Load(cwd, configPath)
-			applyWorkspaceFlag(cmd, &cfg)
-			if cfg.WorkspaceLocation == "" {
-				return fmt.Errorf("no workspace set: add workspace_location to config or pass --workspace")
-			}
-			workspace, err := filepath.Abs(expandHome(cfg.WorkspaceLocation))
+			workspace, err := resolveWorkspace(cmd, &cfg)
 			if err != nil {
 				return err
 			}
@@ -48,37 +45,55 @@ func newImportCmd() *cobra.Command {
 				return err
 			}
 
-			theme := ui.ThemeFromConfig(cfg)
-			styles := map[importer.Action]lipgloss.Style{
-				importer.Cloned:  lipgloss.NewStyle().Foreground(theme.Success),
-				importer.Pulled:  lipgloss.NewStyle().Foreground(theme.Primary),
-				importer.Skipped: lipgloss.NewStyle().Foreground(theme.Muted),
-				importer.Failed:  lipgloss.NewStyle().Foreground(theme.Error),
-			}
-			muted := lipgloss.NewStyle().Foreground(theme.Muted)
-
 			cmd.Printf("importing %d projects from %s into %s\n\n", len(lock.Projects), export.TildePath(lockPath), export.TildePath(workspace))
-			counts := map[importer.Action]int{}
-			for i, dest := range importer.Destinations(lock, workspace) {
-				res := importer.Import(lock.Projects[i], dest)
-				counts[res.Action]++
-				line := styles[res.Action].Render(fmt.Sprintf("%-8s", res.Action)) + export.TildePath(dest)
-				if res.Detail != "" {
-					line += "\n         " + muted.Render(strings.ReplaceAll(res.Detail, "\n", "\n         "))
-				}
-				cmd.Println(line)
-			}
-			cmd.Printf("\n%d cloned, %d pulled, %d skipped, %d failed\n",
-				counts[importer.Cloned], counts[importer.Pulled], counts[importer.Skipped], counts[importer.Failed])
-			if counts[importer.Failed] > 0 {
-				return fmt.Errorf("%d projects failed to import", counts[importer.Failed])
-			}
-			return nil
+			dests := importer.Destinations(lock, workspace)
+			return reportResults(cmd, cfg, "import", len(dests), func(i int) importer.Result {
+				return importer.Import(lock.Projects[i], dests[i])
+			})
 		},
 	}
 	flags.Set(cmd, &lockPath, "lock", "l", "lock file path (default <workspace>/projects.lock)")
 	flags.Set(cmd, &configPath, "config", "c", "config file path")
 	return cmd
+}
+
+// reportResults runs n git operations, printing a styled status line for each and a summary.
+// It returns an error if any operation failed.
+func reportResults(cmd *cobra.Command, cfg domain.Config, verb string, n int, run func(i int) importer.Result) error {
+	theme := ui.ThemeFromConfig(cfg)
+	styles := map[importer.Action]lipgloss.Style{
+		importer.Cloned:  lipgloss.NewStyle().Foreground(theme.Success),
+		importer.Pulled:  lipgloss.NewStyle().Foreground(theme.Primary),
+		importer.Skipped: lipgloss.NewStyle().Foreground(theme.Muted),
+		importer.Failed:  lipgloss.NewStyle().Foreground(theme.Error),
+	}
+	muted := lipgloss.NewStyle().Foreground(theme.Muted)
+
+	counts := map[importer.Action]int{}
+	for i := 0; i < n; i++ {
+		res := run(i)
+		counts[res.Action]++
+		line := styles[res.Action].Render(fmt.Sprintf("%-8s", res.Action)) + export.TildePath(res.Dest)
+		if res.Detail != "" {
+			line += "\n         " + muted.Render(strings.ReplaceAll(res.Detail, "\n", "\n         "))
+		}
+		cmd.Println(line)
+	}
+	cmd.Printf("\n%d cloned, %d pulled, %d skipped, %d failed\n",
+		counts[importer.Cloned], counts[importer.Pulled], counts[importer.Skipped], counts[importer.Failed])
+	if counts[importer.Failed] > 0 {
+		return fmt.Errorf("%d projects failed to %s", counts[importer.Failed], verb)
+	}
+	return nil
+}
+
+// resolveWorkspace returns the absolute workspace path from config (after the --workspace override).
+func resolveWorkspace(cmd *cobra.Command, cfg *domain.Config) (string, error) {
+	applyWorkspaceFlag(cmd, cfg)
+	if cfg.WorkspaceLocation == "" {
+		return "", fmt.Errorf("no workspace set: add workspace_location to config or pass --workspace")
+	}
+	return filepath.Abs(expandHome(cfg.WorkspaceLocation))
 }
 
 // expandHome expands a leading "~" to the user's home directory.

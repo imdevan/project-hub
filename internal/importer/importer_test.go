@@ -91,3 +91,30 @@ func TestImportCloneThenPull(t *testing.T) {
 		t.Fatalf("no remotes: %+v", res)
 	}
 }
+
+func TestPull(t *testing.T) {
+	src := filepath.Join(t.TempDir(), "src")
+	if err := os.MkdirAll(src, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	gitRun(t, src, "init", "-b", "main")
+	gitRun(t, src, "commit", "--allow-empty", "-m", "x")
+
+	if res := Pull(src); res.Action != Skipped {
+		t.Fatalf("no upstream: %+v", res)
+	}
+
+	clone := filepath.Join(t.TempDir(), "clone")
+	if out, err := exec.Command("git", "clone", src, clone).CombinedOutput(); err != nil {
+		t.Fatalf("clone: %s", out)
+	}
+	gitRun(t, src, "commit", "--allow-empty", "-m", "y")
+	if res := Pull(clone); res.Action != Pulled {
+		t.Fatalf("pull: %+v", res)
+	}
+	head, _ := git(clone, "rev-parse", "HEAD")
+	want, _ := git(src, "rev-parse", "HEAD")
+	if head != want {
+		t.Errorf("clone HEAD %s, want %s", head, want)
+	}
+}

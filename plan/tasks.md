@@ -43,7 +43,7 @@ open question: do i store commit hashes? - certainly branches...
   - [x] 5.1.3 `export` records `workspace` in `projects.lock` so import can keep paths relative to it
 - [x] 5.2 add import command
   - [x] 5.2.1 import command should attempt to clone projects from projects.lock into workspace (`origin` or first remote, other remotes added, recorded branch checked out)
-  - [x] 5.2.2 if a project already exists in the location pull (`git pull --ff-only`)
+  - [x] 5.2.2 if a project already exists in the location pull (plain `git pull`, honoring the user's pull config)
   - [x] 5.2.3 project-hub should check workspace/projects.lock then workspace/projects.lock/projects.lock for a projects.lock file
   - [x] 5.2.4 optional flag to use different lock file (`--lock`/`-l`)
   - [x] 5.2.5 add `internal/importer` package (find/read lock, map destinations, clone/pull) with tests
@@ -54,10 +54,28 @@ open question: do i store commit hashes? - certainly branches...
 
 
 ## Feature 6: rebase projects
-- [ ] 6.1 add pull command 
-  - [ ] 6.2 attempt to pull all projects in workspace
+- [x] 6.1 add pull command
+  - [x] 6.2 attempt to pull all projects in workspace (projects discovered under `workspace_location` / `--workspace`; `index_folders` are not pulled)
+  - [x] 6.1.1 add `importer.Pull` (plain `git pull` honoring the user's `pull.rebase`/`pull.ff` config, skips repos with no upstream branch) and reuse it in `import`, with test
+  - [x] 6.1.2 share per-project status output and summary between `import` and `pull`; non-zero exit on failures
+  - [x] 6.1.3 update `README.md`
+- [ ] 6.3 check repo status before pulling, and only pull repos that need it
+  - [ ] 6.3.1 skip repos with uncommitted changes (`git status --porcelain` non-empty) and report them as `dirty`
+  - [ ] 6.3.2 `git fetch` each repo, then compare with upstream using `git rev-list --left-right --count HEAD...@{u}`
+  - [ ] 6.3.3 `0 0` → report `up to date`, skip pull
+  - [ ] 6.3.4 ahead only → report `ahead N`, skip pull
+  - [ ] 6.3.5 behind only → `git pull` (fast-forwards under any config), report `behind N` / pulled
+  - [ ] 6.3.6 split from remote (ahead and behind) → `git pull` using the user's pull config, report `diverged`
+  - [ ] 6.3.7 update summary line to show the new statuses (and hide counts that don't apply, e.g. `cloned` under `pull`)
 
 ## Feature 7: online projects
 
 ## Feature 8: projects are auto deleted from system after certain period of time but opening the project re clones it? 
+
+## Feature 9: run pull / import in parallel
+- [ ] 9.1 run the per-repo work (status check, fetch, pull, clone) for several repos at once instead of one by one
+  - [ ] 9.1.1 bounded worker pool (default e.g. 8), configurable with a `parallel` config option and `--jobs`/`-j` flag
+  - [ ] 9.1.2 apply to both `pull` and `import`
+  - [ ] 9.1.3 keep output readable: print results in a stable order (or live per-repo progress with a Bubble Tea inline spinner/list)
+  - [ ] 9.1.4 update `README.md`, `CONFIG.md`, `example-config.toml`
 
