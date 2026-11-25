@@ -83,7 +83,7 @@ func TestImportCloneThenPull(t *testing.T) {
 		t.Errorf("upstream remote = %q", url)
 	}
 
-	if res := Import(p, dest); res.Action != Pulled {
+	if res := Import(p, dest); res.Action != UpToDate {
 		t.Fatalf("second import: %+v", res)
 	}
 
@@ -93,6 +93,10 @@ func TestImportCloneThenPull(t *testing.T) {
 }
 
 func TestPull(t *testing.T) {
+	// Pull's rebase creates commits, so it needs an identity independent of the user's global config.
+	for k, v := range map[string]string{"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"} {
+		t.Setenv(k, v)
+	}
 	src := filepath.Join(t.TempDir(), "src")
 	if err := os.MkdirAll(src, 0o755); err != nil {
 		t.Fatal(err)
@@ -108,13 +112,47 @@ func TestPull(t *testing.T) {
 	if out, err := exec.Command("git", "clone", src, clone).CombinedOutput(); err != nil {
 		t.Fatalf("clone: %s", out)
 	}
+	gitRun(t, clone, "config", "pull.rebase", "true")
+
+	if res := Pull(clone); res.Action != UpToDate {
+		t.Fatalf("up to date: %+v", res)
+	}
+
+	// behind → pulled
 	gitRun(t, src, "commit", "--allow-empty", "-m", "y")
-	if res := Pull(clone); res.Action != Pulled {
-		t.Fatalf("pull: %+v", res)
+	if res := Pull(clone); res.Action != Pulled || res.Detail != "behind 1" {
+		t.Fatalf("behind: %+v", res)
 	}
 	head, _ := git(clone, "rev-parse", "HEAD")
 	want, _ := git(src, "rev-parse", "HEAD")
 	if head != want {
 		t.Errorf("clone HEAD %s, want %s", head, want)
+	}
+
+	// ahead only → not pulled
+	gitRun(t, clone, "commit", "--allow-empty", "-m", "local")
+	if res := Pull(clone); res.Action != Ahead || res.Detail != "ahead 1, nothing to pull" {
+		t.Fatalf("ahead: %+v", res)
+	}
+
+	// diverged → pulled using the repo's pull config (rebase here)
+	gitRun(t, src, "commit", "--allow-empty", "-m", "z")
+	if res := Pull(clone); res.Action != Pulled || res.Detail != "diverged: ahead 1, behind 1" {
+		t.Fatalf("diverged: %+v", res)
+	}
+	if merges, _ := git(clone, "rev-list", "--merges", "HEAD"); merges != "" {
+		t.Errorf("expected rebase (no merge commits), got merges %q", merges)
+	}
+
+	// uncommitted tracked change → dirty, not pulled; untracked files don't count
+	if err := os.WriteFile(filepath.Join(clone, "untracked"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if res := Pull(clone); res.Action != Ahead {
+		t.Fatalf("untracked only: %+v", res)
+	}
+	gitRun(t, clone, "add", "untracked")
+	if res := Pull(clone); res.Action != Dirty {
+		t.Fatalf("dirty: %+v", res)
 	}
 }

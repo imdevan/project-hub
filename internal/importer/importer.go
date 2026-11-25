@@ -18,11 +18,17 @@ import (
 type Action string
 
 const (
-	Cloned  Action = "cloned"
-	Pulled  Action = "pulled"
-	Skipped Action = "skipped"
-	Failed  Action = "failed"
+	Cloned   Action = "cloned"
+	Pulled   Action = "pulled"
+	UpToDate Action = "up to date"
+	Ahead    Action = "ahead"
+	Dirty    Action = "dirty"
+	Skipped  Action = "skipped"
+	Failed   Action = "failed"
 )
+
+// Actions lists every Action in display order.
+var Actions = []Action{Cloned, Pulled, UpToDate, Ahead, Dirty, Skipped, Failed}
 
 // Result is the outcome of importing a single project.
 type Result struct {
@@ -146,20 +152,64 @@ func Import(p export.Project, dest string) Result {
 	return res
 }
 
-// Pull runs a plain `git pull` in dir, so the user's git config (pull.rebase, pull.ff, ...) decides how to integrate upstream changes.
-// Repositories without an upstream branch are skipped.
+// Pull brings the git repository at dir up to date with its upstream, pulling only when needed:
+//   - uncommitted changes to tracked files → Dirty, not pulled
+//   - no upstream branch → Skipped
+//   - after `git fetch`: same as upstream → UpToDate; only ahead → Ahead (nothing to pull)
+//   - behind, or split from upstream (diverged) → plain `git pull`, so the user's git config
+//     (pull.rebase, pull.ff, ...) decides how changes are integrated
 func Pull(dir string) Result {
 	res := Result{Project: export.Project{Path: dir}, Dest: dir}
+	if out, err := git(dir, "status", "--porcelain", "--untracked-files=no"); err != nil {
+		return fail(res, out)
+	} else if out != "" {
+		res.Action = Dirty
+		res.Detail = "uncommitted changes, not pulled"
+		return res
+	}
 	if _, err := git(dir, "rev-parse", "--abbrev-ref", "@{upstream}"); err != nil {
 		res.Action = Skipped
 		res.Detail = "no upstream branch"
 		return res
 	}
-	if out, err := git(dir, "pull"); err != nil {
+	if out, err := git(dir, "fetch"); err != nil {
 		return fail(res, out)
+	}
+	ahead, behind, err := aheadBehind(dir)
+	if err != nil {
+		return fail(res, err.Error())
+	}
+
+	switch {
+	case ahead == 0 && behind == 0:
+		res.Action = UpToDate
+		return res
+	case behind == 0:
+		res.Action = Ahead
+		res.Detail = fmt.Sprintf("ahead %d, nothing to pull", ahead)
+		return res
+	case ahead == 0:
+		res.Detail = fmt.Sprintf("behind %d", behind)
+	default:
+		res.Detail = fmt.Sprintf("diverged: ahead %d, behind %d", ahead, behind)
+	}
+	if out, err := git(dir, "pull"); err != nil {
+		return fail(res, res.Detail+"\n"+out)
 	}
 	res.Action = Pulled
 	return res
+}
+
+// aheadBehind counts commits on HEAD not in upstream (ahead) and in upstream not in HEAD (behind).
+func aheadBehind(dir string) (ahead, behind int, err error) {
+	out, err := git(dir, "rev-list", "--left-right", "--count", "HEAD...@{upstream}")
+	if err != nil {
+		return 0, 0, fmt.Errorf("compare with upstream: %s", out)
+	}
+	if _, err := fmt.Sscanf(out, "%d %d", &ahead, &behind); err != nil {
+		return 0, 0, fmt.Errorf("parse ahead/behind %q: %w", out, err)
+	}
+	return ahead, behind, nil
 }
 
 func fail(res Result, detail string) Result {

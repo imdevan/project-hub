@@ -59,14 +59,18 @@ open question: do i store commit hashes? - certainly branches...
   - [x] 6.1.1 add `importer.Pull` (plain `git pull` honoring the user's `pull.rebase`/`pull.ff` config, skips repos with no upstream branch) and reuse it in `import`, with test
   - [x] 6.1.2 share per-project status output and summary between `import` and `pull`; non-zero exit on failures
   - [x] 6.1.3 update `README.md`
-- [ ] 6.3 check repo status before pulling, and only pull repos that need it
-  - [ ] 6.3.1 skip repos with uncommitted changes (`git status --porcelain` non-empty) and report them as `dirty`
-  - [ ] 6.3.2 `git fetch` each repo, then compare with upstream using `git rev-list --left-right --count HEAD...@{u}`
-  - [ ] 6.3.3 `0 0` → report `up to date`, skip pull
-  - [ ] 6.3.4 ahead only → report `ahead N`, skip pull
-  - [ ] 6.3.5 behind only → `git pull` (fast-forwards under any config), report `behind N` / pulled
-  - [ ] 6.3.6 split from remote (ahead and behind) → `git pull` using the user's pull config, report `diverged`
-  - [ ] 6.3.7 update summary line to show the new statuses (and hide counts that don't apply, e.g. `cloned` under `pull`)
+- [x] 6.3 check repo status before pulling, and only pull repos that need it
+  - [x] 6.3.1 skip repos with uncommitted changes (`git status --porcelain --untracked-files=no` non-empty) and report them as `dirty`; untracked files don't count
+  - [x] 6.3.2 `git fetch` each repo, then compare with upstream using `git rev-list --left-right --count HEAD...@{u}`
+  - [x] 6.3.3 `0 0` → report `up to date`, skip pull
+  - [x] 6.3.4 ahead only → report `ahead N`, skip pull
+  - [x] 6.3.5 behind only → `git pull` (fast-forwards under any config), report `behind N` / pulled
+  - [x] 6.3.6 split from remote (ahead and behind) → `git pull` using the user's pull config, report `diverged`
+  - [x] 6.3.7 update summary line to show the new statuses (and hide counts that don't apply, e.g. `cloned` under `pull`)
+  - [x] 6.3.8 new statuses (`up to date`, `ahead`, `dirty`) styled from the theme; status column width fits the longest label
+  - [x] 6.3.9 also applies to `import` for projects that already exist
+  - [x] 6.3.10 tests for skipped / up to date / behind / ahead / diverged (rebase) / dirty, independent of global git identity
+  - [x] 6.3.11 update `README.md`
 
 ## Feature 7: online projects
 

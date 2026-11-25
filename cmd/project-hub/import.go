@@ -62,25 +62,43 @@ func newImportCmd() *cobra.Command {
 func reportResults(cmd *cobra.Command, cfg domain.Config, verb string, n int, run func(i int) importer.Result) error {
 	theme := ui.ThemeFromConfig(cfg)
 	styles := map[importer.Action]lipgloss.Style{
-		importer.Cloned:  lipgloss.NewStyle().Foreground(theme.Success),
-		importer.Pulled:  lipgloss.NewStyle().Foreground(theme.Primary),
-		importer.Skipped: lipgloss.NewStyle().Foreground(theme.Muted),
-		importer.Failed:  lipgloss.NewStyle().Foreground(theme.Error),
+		importer.Cloned:   lipgloss.NewStyle().Foreground(theme.Success),
+		importer.Pulled:   lipgloss.NewStyle().Foreground(theme.Primary),
+		importer.UpToDate: lipgloss.NewStyle().Foreground(theme.Muted),
+		importer.Ahead:    lipgloss.NewStyle().Foreground(theme.Secondary),
+		importer.Dirty:    lipgloss.NewStyle().Foreground(theme.Flags),
+		importer.Skipped:  lipgloss.NewStyle().Foreground(theme.Muted),
+		importer.Failed:   lipgloss.NewStyle().Foreground(theme.Error),
 	}
 	muted := lipgloss.NewStyle().Foreground(theme.Muted)
+	width := 0
+	for _, a := range importer.Actions {
+		width = max(width, len(a)+1)
+	}
+	indent := "\n" + strings.Repeat(" ", width)
 
 	counts := map[importer.Action]int{}
 	for i := 0; i < n; i++ {
 		res := run(i)
 		counts[res.Action]++
-		line := styles[res.Action].Render(fmt.Sprintf("%-8s", res.Action)) + export.TildePath(res.Dest)
+		line := styles[res.Action].Render(fmt.Sprintf("%-*s", width, res.Action)) + export.TildePath(res.Dest)
 		if res.Detail != "" {
-			line += "\n         " + muted.Render(strings.ReplaceAll(res.Detail, "\n", "\n         "))
+			line += indent + muted.Render(strings.ReplaceAll(res.Detail, "\n", indent))
 		}
 		cmd.Println(line)
 	}
-	cmd.Printf("\n%d cloned, %d pulled, %d skipped, %d failed\n",
-		counts[importer.Cloned], counts[importer.Pulled], counts[importer.Skipped], counts[importer.Failed])
+
+	// Summary only lists statuses that occurred.
+	var parts []string
+	for _, a := range importer.Actions {
+		if counts[a] > 0 {
+			parts = append(parts, styles[a].Render(fmt.Sprintf("%d %s", counts[a], a)))
+		}
+	}
+	if len(parts) == 0 {
+		parts = append(parts, "nothing to do")
+	}
+	cmd.Printf("\n%s\n", strings.Join(parts, ", "))
 	if counts[importer.Failed] > 0 {
 		return fmt.Errorf("%d projects failed to %s", counts[importer.Failed], verb)
 	}
