@@ -54,7 +54,8 @@ open question: do i store commit hashes? - certainly branches...
 
 
 ## Feature 6: rebase projects
-- [ ] 6.1 attempt to rebase all projects
+- [ ] 6.1 add pull command 
+  - [ ] 6.2 attempt to pull all projects in workspace
 
 ## Feature 7: online projects
 
