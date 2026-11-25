@@ -56,6 +56,7 @@ type Config struct {
 	ShowTaskless  bool     `toml:"show_taskless"`
 	OpenWithTmux  bool     `toml:"open_with_tmux"`
 	SyncInterval  int      `toml:"sync_interval"`
+	Parallel      int      `toml:"parallel"`
 
 	// Rainbow settings
 	Rainbow interface{} `toml:"rainbow"`
@@ -123,6 +124,7 @@ func DefaultConfig() Config {
 		ShowTaskless:  false,
 		OpenWithTmux:  false,
 		SyncInterval:  3600,
+		Parallel:      8,
 		Rainbow:       false,
 	}
 }

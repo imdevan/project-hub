@@ -160,6 +160,7 @@ type partialConfig struct {
 	FtsSubtasks               interface{}          `toml:"fts_subtasks"`
 	TodoTokens               interface{}          `toml:"todo_tokens"`
 	SyncInterval             *int                 `toml:"sync_interval"`
+	Parallel                 *int                 `toml:"parallel"`
 	Rainbow                  interface{}          `toml:"rainbow"`
 }
 
@@ -393,6 +394,9 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.SyncInterval != nil {
 		config.SyncInterval = *partial.SyncInterval
+	}
+	if partial.Parallel != nil {
+		config.Parallel = *partial.Parallel
 	}
 	if partial.Rainbow != nil {
 		switch v := partial.Rainbow.(type) {
