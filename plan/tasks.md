@@ -77,9 +77,13 @@ open question: do i store commit hashes? - certainly branches...
 ## Feature 8: projects are auto deleted from system after certain period of time but opening the project re clones it? 
 
 ## Feature 9: run pull / import in parallel
-- [ ] 9.1 run the per-repo work (status check, fetch, pull, clone) for several repos at once instead of one by one
-  - [ ] 9.1.1 bounded worker pool (default e.g. 8), configurable with a `parallel` config option and `--jobs`/`-j` flag
-  - [ ] 9.1.2 apply to both `pull` and `import`
-  - [ ] 9.1.3 keep output readable: print results in a stable order (or live per-repo progress with a Bubble Tea inline spinner/list)
-  - [ ] 9.1.4 update `README.md`, `CONFIG.md`, `example-config.toml`
-
+- [x] 9.1 run the per-repo work (status check, fetch, pull, clone) for several repos at once instead of one by one
+  - [x] 9.1.1 bounded worker pool (default 8), configurable with a `parallel` config option and `--jobs`/`-j` flag (`importer.RunParallel`; flag overrides config, minimum 1)
+  - [x] 9.1.2 apply to both `pull` and `import`
+  - [x] 9.1.3 keep output readable: results print in stable (sorted) order as soon as they and all earlier repos finish; in a terminal a Bubble Tea inline spinner shows progress (`done/total`) and the repos in progress (`ui.RunGitJobs`)
+  - [x] 9.1.4 update `README.md`, `CONFIG.md`, `example-config.toml`
+  - [x] 9.1.5 `parallel` added to domain config, config manager, and config template
+  - [x] 9.1.6 ctrl+c stops starting new repos, lets running git commands finish (no half-killed rebases/clones), reports the rest as skipped (`interrupted`)
+  - [x] 9.1.7 `import` clones a project nested inside another only after its parent (`importer.ParentIndex`), so parallel clones don't race for the same directory
+  - [x] 9.1.8 results and summary written to the same stream so piped output stays ordered
+  - [x] 9.1.9 tests: worker bound, cancel skips unstarted jobs, parent ordering (race detector clean)
