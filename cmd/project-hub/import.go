@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 
 	"github.com/project-hub/internal/config"
@@ -20,6 +20,7 @@ import (
 func newImportCmd() *cobra.Command {
 	var lockPath string
 	var configPath string
+	var jobs int
 	cmd := &cobra.Command{
 		Use:   "import",
 		Short: "Clone (or pull) projects from a projects.lock file into the workspace",
@@ -46,63 +47,84 @@ func newImportCmd() *cobra.Command {
 			}
 
 			cmd.Printf("importing %d projects from %s into %s\n\n", len(lock.Projects), export.TildePath(lockPath), export.TildePath(workspace))
+			// Sort by destination so parents come before projects nested inside them; a nested
+			// project waits for its parent so parallel clones don't race for the same directory.
 			dests := importer.Destinations(lock, workspace)
-			return reportResults(cmd, cfg, "import", len(dests), func(i int) importer.Result {
-				return importer.Import(lock.Projects[i], dests[i])
+			order := make([]int, len(dests))
+			for i := range order {
+				order[i] = i
+			}
+			sort.SliceStable(order, func(a, b int) bool { return dests[order[a]] < dests[order[b]] })
+			sorted := make([]string, len(order))
+			labels := make([]string, len(order))
+			for i, o := range order {
+				sorted[i] = dests[o]
+				labels[i] = export.TildePath(dests[o])
+			}
+			parents := importer.ParentIndex(sorted)
+			finished := make([]chan struct{}, len(order))
+			for i := range finished {
+				finished[i] = make(chan struct{})
+			}
+			return reportResults(cmd, cfg, "importing", labels, resolveJobs(jobs, cfg), func(i int) importer.Result {
+				defer close(finished[i])
+				if p := parents[i]; p >= 0 {
+					<-finished[p]
+				}
+				return importer.Import(lock.Projects[order[i]], sorted[i])
 			})
 		},
 	}
+	addJobsFlag(cmd, &jobs)
 	flags.Set(cmd, &lockPath, "lock", "l", "lock file path (default <workspace>/projects.lock)")
 	flags.Set(cmd, &configPath, "config", "c", "config file path")
 	return cmd
 }
 
-// reportResults runs n git operations, printing a styled status line for each and a summary.
-// It returns an error if any operation failed.
-func reportResults(cmd *cobra.Command, cfg domain.Config, verb string, n int, run func(i int) importer.Result) error {
+// reportResults runs one git job per label on up to jobs workers, printing a styled status
+// line per job (in label order) and a summary. It returns an error if any job failed.
+func reportResults(cmd *cobra.Command, cfg domain.Config, verb string, labels []string, jobs int, run func(i int) importer.Result) error {
 	theme := ui.ThemeFromConfig(cfg)
-	styles := map[importer.Action]lipgloss.Style{
-		importer.Cloned:   lipgloss.NewStyle().Foreground(theme.Success),
-		importer.Pulled:   lipgloss.NewStyle().Foreground(theme.Primary),
-		importer.UpToDate: lipgloss.NewStyle().Foreground(theme.Muted),
-		importer.Ahead:    lipgloss.NewStyle().Foreground(theme.Secondary),
-		importer.Dirty:    lipgloss.NewStyle().Foreground(theme.Flags),
-		importer.Skipped:  lipgloss.NewStyle().Foreground(theme.Muted),
-		importer.Failed:   lipgloss.NewStyle().Foreground(theme.Error),
-	}
-	muted := lipgloss.NewStyle().Foreground(theme.Muted)
-	width := 0
-	for _, a := range importer.Actions {
-		width = max(width, len(a)+1)
-	}
-	indent := "\n" + strings.Repeat(" ", width)
+	results, runErr := ui.RunGitJobs(cmd.OutOrStderr(), theme, verb, labels, jobs, run)
 
 	counts := map[importer.Action]int{}
-	for i := 0; i < n; i++ {
-		res := run(i)
-		counts[res.Action]++
-		line := styles[res.Action].Render(fmt.Sprintf("%-*s", width, res.Action)) + export.TildePath(res.Dest)
-		if res.Detail != "" {
-			line += indent + muted.Render(strings.ReplaceAll(res.Detail, "\n", indent))
+	for _, r := range results {
+		if r.Action != "" {
+			counts[r.Action]++
 		}
-		cmd.Println(line)
 	}
-
 	// Summary only lists statuses that occurred.
 	var parts []string
 	for _, a := range importer.Actions {
 		if counts[a] > 0 {
-			parts = append(parts, styles[a].Render(fmt.Sprintf("%d %s", counts[a], a)))
+			parts = append(parts, ui.GitJobStyle(theme, a).Render(fmt.Sprintf("%d %s", counts[a], a)))
 		}
 	}
 	if len(parts) == 0 {
 		parts = append(parts, "nothing to do")
 	}
 	cmd.Printf("\n%s\n", strings.Join(parts, ", "))
+	if runErr != nil {
+		return runErr
+	}
 	if counts[importer.Failed] > 0 {
-		return fmt.Errorf("%d projects failed to %s", counts[importer.Failed], verb)
+		return fmt.Errorf("%d projects failed", counts[importer.Failed])
 	}
 	return nil
+}
+
+// addJobsFlag registers --jobs/-j on cmd.
+func addJobsFlag(cmd *cobra.Command, jobs *int) {
+	flags.Set(cmd, jobs, "jobs", "j", "repositories to process at once (overrides parallel, default 8)")
+}
+
+// resolveJobs returns the --jobs flag if set, else the parallel config value, at least 1.
+func resolveJobs(flagJobs int, cfg domain.Config) int {
+	jobs := cfg.Parallel
+	if flagJobs > 0 {
+		jobs = flagJobs
+	}
+	return max(jobs, 1)
 }
 
 // resolveWorkspace returns the absolute workspace path from config (after the --workspace override).

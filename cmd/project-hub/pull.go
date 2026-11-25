@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/spf13/cobra"
 
@@ -15,6 +16,7 @@ import (
 
 func newPullCmd() *cobra.Command {
 	var configPath string
+	var jobs int
 	cmd := &cobra.Command{
 		Use:   "pull",
 		Short: "Pull all projects in the workspace (uses your git pull config)",
@@ -43,11 +45,17 @@ func newPullCmd() *cobra.Command {
 			}
 
 			cmd.Printf("pulling %d projects in %s\n\n", len(dirs), export.TildePath(workspace))
-			return reportResults(cmd, cfg, "pull", len(dirs), func(i int) importer.Result {
+			sort.Strings(dirs)
+			labels := make([]string, len(dirs))
+			for i, d := range dirs {
+				labels[i] = export.TildePath(d)
+			}
+			return reportResults(cmd, cfg, "pulling", labels, resolveJobs(jobs, cfg), func(i int) importer.Result {
 				return importer.Pull(dirs[i])
 			})
 		},
 	}
+	addJobsFlag(cmd, &jobs)
 	flags.Set(cmd, &configPath, "config", "c", "config file path")
 	return cmd
 }
