@@ -121,7 +121,7 @@ func DefaultConfig() Config {
 		FtsTasks:      []string{"- [ ] ", "* [ ] "},
 		FtsSubtasks:   []string{"- [ ] ", "* [ ] "},
 		TodoTokens:    []string{"TODO", "FIXME"},
-		ShowTaskless:  false,
+		ShowTaskless:  true,
 		OpenWithTmux:  false,
 		SyncInterval:  3600,
 		Parallel:      8,

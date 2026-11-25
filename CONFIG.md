@@ -55,7 +55,7 @@ The following options can be set in your configuration file:
 | `workspace_location` | string | `""` | Workspace root. Always indexed, and where `import` clones projects (e.g. `"~/Projects"`). Override with `--workspace`/`-w` |
 | `index_folders` | array | `[]` | Additional glob patterns to scan for projects, indexed alongside `workspace_location` (e.g. `["~/work/*"]`) |
 | `ignore_folders` | array | `["node_modules", ...]` | Directories to ignore when scanning for projects |
-| `show_taskless` | bool | `false` | When false, hide projects that don't have any tasks |
+| `show_taskless` | bool | `true` | When false, hide projects that don't have any tasks |
 | `open_with_tmux` | bool | `false` | When true, open project in a new tmux window named after the project |
 | `fts_files` | array | `["plan/tasks.md", ...]` | Target files for full text tasks |
 | `sync_interval` | int | `3600` | Seconds between project scans |
