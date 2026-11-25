@@ -4,7 +4,8 @@
 # editor = {{printf "%q" .Editor}}
 
 # Settings
-# index_folders = []  # Glob patterns to scan for projects (e.g. ["~/Projects/*"])
+# workspace_location = ""  # Workspace root: always indexed, and where `import` clones projects (e.g. "~/Projects")
+# index_folders = []  # Additional glob patterns to scan for projects, indexed alongside workspace_location (e.g. ["~/work/*"])
 # ignore_folders = [{{range $index, $element := .IgnoreFolders}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]
 # show_taskless = {{.ShowTaskless}}  # When false: hide projects that don't have any tasks
 # fts_files = [{{range $index, $element := .FtsFiles}}{{if $index}}, {{end}}{{printf "%q" $element}}{{end}}]

@@ -24,6 +24,7 @@ func newExportCmd() *cobra.Command {
 				return err
 			}
 			cfg := config.Load(cwd, configPath)
+			applyWorkspaceFlag(cmd, &cfg)
 			dirs, err := todo.NewScanner(cfg).ResolveProjectDirs(cwd)
 			if err != nil {
 				return err
@@ -32,6 +33,9 @@ func newExportCmd() *cobra.Command {
 				output = export.DefaultLockFile
 			}
 			lock := export.Collect(dirs)
+			if cfg.WorkspaceLocation != "" {
+				lock.Workspace = export.TildePath(expandHome(cfg.WorkspaceLocation))
+			}
 			cmd.Print(export.Tree(lock))
 			if err := export.Write(lock, output); err != nil {
 				return err

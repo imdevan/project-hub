@@ -231,3 +231,31 @@ func TestProjectTmuxWindowName(t *testing.T) {
 
 
 
+
+func TestResolveProjectDirsWorkspaceAndIndexFolders(t *testing.T) {
+	root := t.TempDir()
+	ws := filepath.Join(root, "ws")
+	extra := filepath.Join(root, "extra")
+	for _, p := range []string{filepath.Join(ws, "a"), filepath.Join(ws, "group", "b"), filepath.Join(extra, "c")} {
+		if err := os.MkdirAll(filepath.Join(p, ".git"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	cfg := domain.DefaultConfig()
+	cfg.WorkspaceLocation = ws
+	cfg.IndexFolders = []string{filepath.Join(extra, "*")}
+	dirs, err := NewScanner(cfg).ResolveProjectDirs(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(dirs) != 3 {
+		t.Fatalf("expected 3 project dirs (workspace + index_folders), got %v", dirs)
+	}
+
+	cfg.IndexFolders = nil
+	dirs, _ = NewScanner(cfg).ResolveProjectDirs(root)
+	if len(dirs) != 2 {
+		t.Fatalf("expected 2 workspace project dirs, got %v", dirs)
+	}
+}

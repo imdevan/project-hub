@@ -40,7 +40,8 @@ type Config struct {
 	ListSpacing string       `toml:"list_spacing"`
 
 	// System settings
-	IndexFolders  []string `toml:"index_folders"`
+	WorkspaceLocation string   `toml:"workspace_location"`
+	IndexFolders      []string `toml:"index_folders"`
 	CacheInterval int      `toml:"cache_interval"`
 	HomeIcon      string   `toml:"home_icon"`
 	DefaultSortBy string   `toml:"default_sort_by"`

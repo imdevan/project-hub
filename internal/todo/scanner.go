@@ -49,15 +49,26 @@ func (s *Scanner) ResolveProjectDirs(cwd string) ([]string, error) {
 		ignoreMap[strings.ToLower(folder)] = true
 	}
 
-	if len(s.config.IndexFolders) == 0 {
-		discovered := s.discoverProjects(cwd)
-		for _, dir := range discovered {
+	addDiscovered := func(root string) {
+		for _, dir := range s.discoverProjects(root) {
 			absPath, err := filepath.Abs(dir)
 			if err == nil && !visited[absPath] {
 				visited[absPath] = true
 				projectDirs = append(projectDirs, absPath)
 			}
 		}
+	}
+
+	// The workspace is always indexed; index_folders are indexed in addition to it.
+	workspace := expandPath(s.config.WorkspaceLocation)
+	if workspace != "" {
+		if info, err := os.Stat(workspace); err == nil && info.IsDir() {
+			addDiscovered(workspace)
+		}
+	}
+
+	if workspace == "" && len(s.config.IndexFolders) == 0 {
+		addDiscovered(cwd)
 	} else {
 		for _, pattern := range s.config.IndexFolders {
 			expanded := expandPath(pattern)
@@ -76,14 +87,7 @@ func (s *Scanner) ResolveProjectDirs(cwd string) ([]string, error) {
 						continue
 					}
 
-					discovered := s.discoverProjects(match)
-					for _, dir := range discovered {
-						absPath, err := filepath.Abs(dir)
-						if err == nil && !visited[absPath] {
-							visited[absPath] = true
-							projectDirs = append(projectDirs, absPath)
-						}
-					}
+					addDiscovered(match)
 				}
 			}
 		}

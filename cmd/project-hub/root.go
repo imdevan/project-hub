@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/project-hub/internal/config"
+	"github.com/project-hub/internal/domain"
 	"github.com/project-hub/internal/flags"
 	"github.com/project-hub/internal/index"
 	pkg "github.com/project-hub/internal/package"
@@ -25,6 +26,7 @@ var (
 
 type rootOptions struct {
 	configPath  string
+	workspace   string
 	showVersion bool
 }
 
@@ -54,6 +56,7 @@ func newRootCmd() *cobra.Command {
 			}
 
 			cfg := config.Load(cwd, opts.configPath)
+			applyWorkspaceFlag(cmd, &cfg)
 
 			store, err := index.NewStore()
 			if err == nil {
@@ -69,12 +72,21 @@ func newRootCmd() *cobra.Command {
 	}
 
 	flags.SetPersistent(cmd, &opts.configPath, "config", "c", "config file path")
+	flags.SetPersistent(cmd, &opts.workspace, "workspace", "w", "workspace location (overrides workspace_location)")
 	flags.Set(cmd, &opts.showVersion, "version", "v", "print version information")
 
 	cmd.AddCommand(newConfigCmd())
 	cmd.AddCommand(newExportCmd())
+	cmd.AddCommand(newImportCmd())
 
 	return cmd
+}
+
+// applyWorkspaceFlag overrides cfg.WorkspaceLocation with the --workspace flag when set.
+func applyWorkspaceFlag(cmd *cobra.Command, cfg *domain.Config) {
+	if ws, err := cmd.Flags().GetString("workspace"); err == nil && ws != "" {
+		cfg.WorkspaceLocation = ws
+	}
 }
 
 func resolvedVersion() string {

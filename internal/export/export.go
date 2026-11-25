@@ -29,8 +29,11 @@ type Project struct {
 }
 
 // Lock is the on-disk representation of projects.lock.
+// Workspace, when set, is the workspace root the projects were exported from;
+// import uses it to place projects relative to the target workspace.
 type Lock struct {
-	Projects []Project `toml:"projects"`
+	Workspace string    `toml:"workspace,omitempty"`
+	Projects  []Project `toml:"projects"`
 }
 
 // Collect gathers git info for each project directory.
@@ -128,6 +131,12 @@ func lines(s string) []string {
 		return nil
 	}
 	return strings.Split(s, "\n")
+}
+
+// TildePath replaces a leading home directory in path with "~".
+func TildePath(path string) string {
+	home, _ := os.UserHomeDir()
+	return tildePath(path, home)
 }
 
 func tildePath(path, home string) string {

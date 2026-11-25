@@ -37,6 +37,21 @@ projects.lock?
 
 open question: do i store commit hashes? - certainly branches... 
 ## Feature 5: import projects
+- [x] 5.1 add workspace_location to config options
+  - [x] 5.1.1 add optional flag for workspace location (persistent `--workspace`/`-w` overrides `workspace_location`)
+  - [x] 5.1.2 add `workspace_location` to domain config, config manager, config template, `example-config.toml`, `CONFIG.md`
+  - [x] 5.1.3 `export` records `workspace` in `projects.lock` so import can keep paths relative to it
+- [x] 5.2 add import command
+  - [x] 5.2.1 import command should attempt to clone projects from projects.lock into workspace (`origin` or first remote, other remotes added, recorded branch checked out)
+  - [x] 5.2.2 if a project already exists in the location pull (`git pull --ff-only`)
+  - [x] 5.2.3 project-hub should check workspace/projects.lock then workspace/projects.lock/projects.lock for a projects.lock file
+  - [x] 5.2.4 optional flag to use different lock file (`--lock`/`-l`)
+  - [x] 5.2.5 add `internal/importer` package (find/read lock, map destinations, clone/pull) with tests
+  - [x] 5.2.6 print per-project status (cloned/pulled/skipped/failed) and summary; non-zero exit on failures
+- [x] 5.3 update index_folders function to always index the workspace_location and index_folders are folders that are indexed in addition to the workspace
+  - [ ] 5.4 update index_folders config comments
+  - [x] 5.4.2 add scanner test for workspace + index_folders discovery
+
 
 ## Feature 6: rebase projects
 - [ ] 6.1 attempt to rebase all projects

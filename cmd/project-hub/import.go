@@ -1,0 +1,92 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/spf13/cobra"
+
+	"github.com/project-hub/internal/config"
+	"github.com/project-hub/internal/export"
+	"github.com/project-hub/internal/flags"
+	"github.com/project-hub/internal/importer"
+	"github.com/project-hub/internal/ui"
+)
+
+func newImportCmd() *cobra.Command {
+	var lockPath string
+	var configPath string
+	cmd := &cobra.Command{
+		Use:   "import",
+		Short: "Clone (or pull) projects from a projects.lock file into the workspace",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cwd, err := os.Getwd()
+			if err != nil {
+				return err
+			}
+			cfg := config.Load(cwd, configPath)
+			applyWorkspaceFlag(cmd, &cfg)
+			if cfg.WorkspaceLocation == "" {
+				return fmt.Errorf("no workspace set: add workspace_location to config or pass --workspace")
+			}
+			workspace, err := filepath.Abs(expandHome(cfg.WorkspaceLocation))
+			if err != nil {
+				return err
+			}
+
+			if lockPath == "" {
+				if lockPath, err = importer.FindLock(workspace); err != nil {
+					return err
+				}
+			}
+			lock, err := importer.Read(expandHome(lockPath))
+			if err != nil {
+				return err
+			}
+
+			theme := ui.ThemeFromConfig(cfg)
+			styles := map[importer.Action]lipgloss.Style{
+				importer.Cloned:  lipgloss.NewStyle().Foreground(theme.Success),
+				importer.Pulled:  lipgloss.NewStyle().Foreground(theme.Primary),
+				importer.Skipped: lipgloss.NewStyle().Foreground(theme.Muted),
+				importer.Failed:  lipgloss.NewStyle().Foreground(theme.Error),
+			}
+			muted := lipgloss.NewStyle().Foreground(theme.Muted)
+
+			cmd.Printf("importing %d projects from %s into %s\n\n", len(lock.Projects), export.TildePath(lockPath), export.TildePath(workspace))
+			counts := map[importer.Action]int{}
+			for i, dest := range importer.Destinations(lock, workspace) {
+				res := importer.Import(lock.Projects[i], dest)
+				counts[res.Action]++
+				line := styles[res.Action].Render(fmt.Sprintf("%-8s", res.Action)) + export.TildePath(dest)
+				if res.Detail != "" {
+					line += "\n         " + muted.Render(strings.ReplaceAll(res.Detail, "\n", "\n         "))
+				}
+				cmd.Println(line)
+			}
+			cmd.Printf("\n%d cloned, %d pulled, %d skipped, %d failed\n",
+				counts[importer.Cloned], counts[importer.Pulled], counts[importer.Skipped], counts[importer.Failed])
+			if counts[importer.Failed] > 0 {
+				return fmt.Errorf("%d projects failed to import", counts[importer.Failed])
+			}
+			return nil
+		},
+	}
+	flags.Set(cmd, &lockPath, "lock", "l", "lock file path (default <workspace>/projects.lock)")
+	flags.Set(cmd, &configPath, "config", "c", "config file path")
+	return cmd
+}
+
+// expandHome expands a leading "~" to the user's home directory.
+func expandHome(path string) string {
+	if path == "~" || strings.HasPrefix(path, "~/") {
+		if home, err := os.UserHomeDir(); err == nil {
+			return filepath.Join(home, strings.TrimPrefix(path, "~"))
+		}
+	}
+	return path
+}

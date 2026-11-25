@@ -2,7 +2,8 @@
 editor = "nvim"
 
 # System settings
-index_folders = ["~/Projects/*"]       # Glob patterns to scan for projects to index
+workspace_location = "~/Projects"     # Workspace root: always indexed, and where `import` clones projects
+index_folders = ["~/work/*"]           # Additional glob patterns indexed alongside workspace_location
 cache_interval = 300
 
 # Display

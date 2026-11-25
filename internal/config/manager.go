@@ -148,6 +148,7 @@ type partialConfig struct {
 	ListSpacing              *string              `toml:"list_spacing"`
 	ShowTaskless             *bool                `toml:"show_taskless"`
 	OpenWithTmux             *bool                `toml:"open_with_tmux"`
+	WorkspaceLocation        *string              `toml:"workspace_location"`
 	IndexFolders             interface{}          `toml:"index_folders"`
 	CacheInterval            *int                 `toml:"cache_interval"`
 	HomeIcon                 *string              `toml:"home_icon"`
@@ -343,6 +344,9 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.OpenWithTmux != nil {
 		config.OpenWithTmux = *partial.OpenWithTmux
+	}
+	if partial.WorkspaceLocation != nil {
+		config.WorkspaceLocation = *partial.WorkspaceLocation
 	}
 	if partial.IndexFolders != nil {
 		switch v := partial.IndexFolders.(type) {

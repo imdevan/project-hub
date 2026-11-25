@@ -15,6 +15,9 @@ project-hub config          # View or edit configuration
 project-hub config init     # Generate default config file
 project-hub export          # Write projects.lock (dirs, remotes, branches, commit) and print tree
 project-hub export -o f     # Write lock file to path f
+project-hub import          # Clone (or pull if present) projects from <workspace>/projects.lock into the workspace
+project-hub import -l f     # Import from lock file f
+project-hub -w ~/Projects   # Override workspace_location for any command
 project-hub completion      # Generate shell completion scripts
 ```
 
@@ -28,7 +31,8 @@ See [CONFIG.md](./CONFIG.md) for configuration details.
 
 **Parsing**
 
-- Discovery: directories matching `index_folders` globs are walked. Any directory containing `.git` is a project root. Folders in `ignore_folders` are skipped. Without `index_folders`, the current directory is walked.
+- Discovery: `workspace_location` is always walked, and directories matching `index_folders` globs are walked in addition to it. Any directory containing `.git` is a project root. Folders in `ignore_folders` are skipped. Without either, the current directory is walked.
+- Import: `import` looks for `<workspace>/projects.lock`, then `<workspace>/projects.lock/projects.lock`. Each project is cloned from its `origin` (or first) remote into the workspace, keeping its path relative to the exported workspace (or the projects' common parent); other remotes are added and the recorded branch is checked out. Projects that already exist are updated with `git pull --ff-only`.
 - Task files: files matching `fts_files` (e.g. `plan/tasks.md`, `todo.md`) are parsed as markdown. Lines starting with `fts_tasks` / `fts_subtasks` prefixes (`- [ ] `) count as tasks; `[x]` counts as completed. Lines starting with `fts_features` (`## Feature `) group tasks into features.
 - Code TODOs: every other file is searched for `todo_tokens` (`TODO`, `FIXME`). Binary files are skipped.
 
